@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PizzaCore | Dashboard</title>
+    <link rel="icon" type="image/png" href="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/icone.png">
+    <link rel="apple-touch-icon" href="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/icone.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="clock-widget">
+            <div id="current-time">00:00:00</div>
+            <div id="current-date">Carregando data...</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="#" onclick="showView('relatorio')">
+                        <i class="fa-solid fa-chart-pie"></i> Relatório
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('clientes')">
+                        <i class="fa-solid fa-user"></i> Clientes
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('pedidos')">
+                        <i class="fa-solid fa-book-open"></i> Pedidos
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('agenda')">
+                        <i class="fa-solid fa-calendar-days"></i> Agenda
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#" onclick="showView('configuracoes')">
+                        <i class="fa-solid fa-gear"></i> Configurações
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <button class="btn-logout" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Sair
+        </button>
+    </aside>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <button class="sidebar-toggle" type="button" aria-label="Abrir menu" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <img src="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/image-removebg-preview%20(12).png" alt="Logo PizzaCore" class="dashboard-logo">
+        </header>
+
+        <section id="view-relatorio" class="content-view">
+            <h1 class="view-title">Relatorio.</h1>
+
+            <div class="report-grid">
+                <div class="report-card">
+                    <div class="report-header">
+                        <h2 class="report-subtitle">Status dos pedidos</h2>
+                        <span class="report-note" id="report-total">Total: 0</span>
+                    </div>
+
+                    <div class="report-chart-wrap">
+                        <canvas id="ordersPieChart" width="320" height="320" aria-label="Gráfico de pizza de status dos pedidos" role="img"></canvas>
+                        <div class="report-empty" id="reportEmpty" style="display: none;">Sem pedidos para exibir.</div>
+                    </div>
+
+                    <div class="report-legend">
+                        <div class="report-legend-item" id="legend-line-atendimento"><span class="dot dot-atendimento"></span> Atendimento: 0 pedidos</div>
+                        <div class="report-legend-item" id="legend-line-preparo"><span class="dot dot-preparo"></span> Preparo: 0 pedidos</div>
+                        <div class="report-legend-item" id="legend-line-entregue"><span class="dot dot-entregue"></span> Entregue: 0 pedidos</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-clientes" class="content-view" style="display: none;">
+            <h1 class="view-title">Clientes</h1>
+
+            <div class="clients-layout">
+                <div class="clients-card">
+                    <h2 class="clients-subtitle" id="clientFormTitle">Novo cliente</h2>
+                    <form id="clientForm" class="clients-form">
+                        <div class="clients-field">
+                            <label for="clientName" class="clients-label">Nome</label>
+                            <input id="clientName" class="clients-input" type="text" placeholder="Ex: João Silva" required autocomplete="name">
+                        </div>
+
+                        <div class="clients-field">
+                            <label for="clientPhone" class="clients-label">Telefone</label>
+                            <input id="clientPhone" class="clients-input" type="tel" inputmode="tel" placeholder="Ex: (11) 99999-9999" required autocomplete="tel" maxlength="15">
+                        </div>
+
+                        <div class="clients-actions">
+                            <button type="submit" class="clients-btn clients-btn-primary" id="clientSaveBtn">Salvar</button>
+                            <button type="button" class="clients-btn clients-btn-ghost" id="clientCancelBtn" style="display: none;" onclick="cancelClientEdit()">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="clients-card">
+                    <div class="clients-list-header">
+                        <h2 class="clients-subtitle">Lista de clientes</h2>
+                        <span class="clients-count" id="clientCount">0</span>
+                    </div>
+
+                    <div id="clientEmpty" class="clients-empty" style="display: none;">
+                        Nenhum cliente salvo ainda.
+                    </div>
+
+                    <div id="clientList" class="clients-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-pedidos" class="content-view" style="display: none;">
+            <h1 class="view-title">Pedidos</h1>
+
+            <div class="orders-create">
+                <div class="orders-card">
+                    <h2 class="orders-subtitle">Novo pedido</h2>
+                    <form id="orderForm" class="orders-form">
+                        <div class="orders-field">
+                            <label for="orderClient" class="orders-label">Cliente</label>
+                            <select id="orderClient" class="orders-select" required>
+                                <option value="">Selecione um cliente...</option>
+                            </select>
+                        </div>
+
+                        <div class="orders-field">
+                            <label for="orderTitle" class="orders-label">Descrição</label>
+                            <input id="orderTitle" class="orders-input" type="text" placeholder="Ex: 1 Pizza Calabresa + refri" required maxlength="80">
+                        </div>
+
+                        <div class="orders-actions">
+                            <button type="submit" class="orders-btn orders-btn-primary">Criar pedido</button>
+                            <button type="button" class="orders-btn orders-btn-ghost" onclick="clearOrders()">Limpar tudo</button>
+                        </div>
+
+                        <p class="orders-hint">Dica: você pode arrastar os cards entre colunas no desktop.</p>
+                    </form>
+                </div>
+            </div>
+
+            <div class="kanban">
+                <div class="kanban-col" data-status="atendimento">
+                    <div class="kanban-col-header">
+                        <h2>Atendimento</h2>
+                        <span class="kanban-count" id="count-atendimento">0</span>
+                    </div>
+                    <div class="kanban-dropzone" id="col-atendimento"></div>
+                </div>
+
+                <div class="kanban-col" data-status="preparo">
+                    <div class="kanban-col-header">
+                        <h2>Preparo</h2>
+                        <span class="kanban-count" id="count-preparo">0</span>
+                    </div>
+                    <div class="kanban-dropzone" id="col-preparo"></div>
+                </div>
+
+                <div class="kanban-col" data-status="entregue">
+                    <div class="kanban-col-header">
+                        <h2>Entregue</h2>
+                        <span class="kanban-count" id="count-entregue">0</span>
+                    </div>
+                    <div class="kanban-dropzone" id="col-entregue"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-agenda" class="content-view" style="display: none;">
+            <h1 class="view-title-agenda">Agenda</h1>
+            
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button type="button" onclick="changeMonth(-1)">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h2 id="month-year-display">JANEIRO DE 2026</h2>
+                    <button type="button" onclick="changeMonth(1)">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="calendar-weekdays">
+                    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                </div>
+                
+                <div id="calendar-days" class="calendar-grid"></div>
+            </div>
+        </section>
+
+            <section id="view-configuracoes" class="content-view" style="display: none;">
+                <h1 class="view-title">Configurações</h1>
+
+                <div class="settings-panel">
+                    <div class="settings-row">
+                        <label for="timezoneSelect" class="settings-label">Fuso horário</label>
+                        <select id="timezoneSelect" class="settings-select">
+                            <option value="America/Noronha">Fernando de Noronha (UTC−02)</option>
+                            <option value="America/Sao_Paulo">Brasília / SP (UTC−03)</option>
+                            <option value="America/Manaus">Manaus (UTC−04)</option>
+                            <option value="America/Rio_Branco">Rio Branco (UTC−05)</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-row">
+                        <label for="themeSelect" class="settings-label">Cor do layout</label>
+                        <select id="themeSelect" class="settings-select">
+                            <option value="black">Preta</option>
+                            <option value="red">Vermelha</option>
+                            <option value="yellow">Amarela</option>
+                            <option value="blue">Azul</option>
+                            <option value="green">Verde</option>
+                            <option value="orange">Laranja</option>
+                        </select>
+                    </div>
+
+                    <p class="settings-hint">As alterações são salvas automaticamente neste navegador.</p>
+                </div>
+            </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+
+    <script>
+        const STORAGE_KEYS = {
+            timeZone: 'pizzacore.timeZone',
+            theme: 'pizzacore.theme'
+        };
+
+        function getSelectedTimeZone() {
+            return localStorage.getItem(STORAGE_KEYS.timeZone) || 'America/Sao_Paulo';
+        }
+
+        function applyTimeZone(timeZone) {
+            localStorage.setItem(STORAGE_KEYS.timeZone, timeZone);
+            updateClock();
+        }
+
+        function getSelectedTheme() {
+            return localStorage.getItem(STORAGE_KEYS.theme) || 'black';
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            localStorage.setItem(STORAGE_KEYS.theme, theme);
+        }
+
+        function isMobileLayout() {
+            return window.matchMedia('(max-width: 768px)').matches;
+        }
+
+        function openSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+
+            sidebar.classList.add('is-open');
+            overlay.classList.add('is-visible');
+            document.body.classList.add('sidebar-open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+
+            sidebar.classList.remove('is-open');
+            overlay.classList.remove('is-visible');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+
+            if (sidebar.classList.contains('is-open')) closeSidebar();
+            else openSidebar();
+        }
+
+        function syncSidebarForViewport() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+
+            if (isMobileLayout()) {
+                sidebar.classList.add('is-mobile');
+                closeSidebar();
+            } else {
+                sidebar.classList.remove('is-mobile');
+                sidebar.classList.remove('is-open');
+                overlay.classList.remove('is-visible');
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeZone = getSelectedTimeZone();
+
+            const timeOptions = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+                timeZone
+            };
+
+            const dateOptions = {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                timeZone
+            };
+
+            try {
+                document.getElementById('current-time').innerText = now.toLocaleTimeString('pt-BR', timeOptions);
+                document.getElementById('current-date').innerText = now.toLocaleDateString('pt-BR', dateOptions);
+            } catch {
+                // Fallback raro (caso o navegador não suporte timeZone)
+                const fallbackTimeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+                document.getElementById('current-time').innerText = now.toLocaleTimeString('pt-BR', fallbackTimeOptions);
+                document.getElementById('current-date').innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            }
+        }
+
+        const CLIENTS_STORAGE_KEY = 'pizzacore.clients.v1';
+        // Telefone (somente dígitos) vira o ID único do cliente
+        let editingClientId = null; // phoneId
+
+        function normalizePhoneId(phone) {
+            // ID: somente dígitos, limitado a 11 (DDD + 9 dígitos)
+            const digits = String(phone || '').replace(/\D/g, '').slice(0, 11);
+            return digits;
+        }
+
+        function formatPhone(phoneId) {
+            const digits = normalizePhoneId(phoneId);
+            if (digits.length < 10) return digits;
+            const ddd = digits.slice(0, 2);
+            const rest = digits.slice(2);
+            if (rest.length === 9) {
+                return `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
+            }
+            if (rest.length === 8) {
+                return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
+            }
+            return `(${ddd}) ${rest}`;
+        }
+
+        function loadClients() {
+            // Migra dados antigos (id aleatório) para phoneId como chave
+            try {
+                const raw = localStorage.getItem(CLIENTS_STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                const list = Array.isArray(parsed) ? parsed : [];
+
+                const byPhoneId = new Map();
+                for (const item of list) {
+                    const phoneId = normalizePhoneId(item?.phoneId || item?.phone || '');
+                    const name = String(item?.name || '').trim();
+                    if (!phoneId || !name) continue;
+
+                    const createdAt = item?.createdAt || new Date().toISOString();
+                    const updatedAt = item?.updatedAt || createdAt;
+                    byPhoneId.set(phoneId, {
+                        phoneId,
+                        name,
+                        phone: formatPhone(phoneId),
+                        createdAt,
+                        updatedAt
+                    });
+                }
+
+                return Array.from(byPhoneId.values());
+            } catch {
+                return [];
+            }
+        }
+
+        function saveClients(clients) {
+            localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clients));
+        }
+
+        function isValidPhoneId(phoneId) {
+            // Aceita 10 ou 11 dígitos (DDD + 8/9)
+            return phoneId.length === 10 || phoneId.length === 11;
+        }
+
+        function setClientFormMode(mode) {
+            const title = document.getElementById('clientFormTitle');
+            const saveBtn = document.getElementById('clientSaveBtn');
+            const cancelBtn = document.getElementById('clientCancelBtn');
+
+            if (mode === 'edit') {
+                if (title) title.innerText = 'Editar cliente';
+                if (saveBtn) saveBtn.innerText = 'Atualizar';
+                if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+            } else {
+                if (title) title.innerText = 'Novo cliente';
+                if (saveBtn) saveBtn.innerText = 'Salvar';
+                if (cancelBtn) cancelBtn.style.display = 'none';
+            }
+        }
+
+        function resetClientForm() {
+            const nameInput = document.getElementById('clientName');
+            const phoneInput = document.getElementById('clientPhone');
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+        }
+
+        function cancelClientEdit() {
+            editingClientId = null;
+            setClientFormMode('create');
+            resetClientForm();
+        }
+
+        function startClientEdit(clientId) {
+            const clients = loadClients();
+            const client = clients.find((c) => c.phoneId === clientId);
+            if (!client) return;
+
+            editingClientId = clientId;
+            setClientFormMode('edit');
+
+            const nameInput = document.getElementById('clientName');
+            const phoneInput = document.getElementById('clientPhone');
+            if (nameInput) nameInput.value = client.name || '';
+            if (phoneInput) phoneInput.value = client.phone || '';
+
+            if (nameInput) nameInput.focus();
+        }
+
+        function deleteClient(clientId) {
+            const ok = confirm('Excluir este cliente?');
+            if (!ok) return;
+
+            const clients = loadClients().filter((c) => c.phoneId !== clientId);
+            saveClients(clients);
+            if (editingClientId === clientId) cancelClientEdit();
+            renderClients();
+        }
+
+        function renderClients() {
+            const listEl = document.getElementById('clientList');
+            const emptyEl = document.getElementById('clientEmpty');
+            const countEl = document.getElementById('clientCount');
+            if (!listEl) return;
+
+            const clients = loadClients().slice().sort((a, b) => {
+                const an = String(a.name || '').toLowerCase();
+                const bn = String(b.name || '').toLowerCase();
+                return an.localeCompare(bn);
+            });
+
+            listEl.innerHTML = '';
+            if (countEl) countEl.innerText = String(clients.length);
+
+            if (clients.length === 0) {
+                if (emptyEl) emptyEl.style.display = 'block';
+                return;
+            }
+
+            if (emptyEl) emptyEl.style.display = 'none';
+
+            for (const client of clients) {
+                const row = document.createElement('div');
+                row.className = 'client-row';
+
+                const info = document.createElement('div');
+                info.className = 'client-info';
+
+                const name = document.createElement('div');
+                name.className = 'client-name';
+                name.innerText = client.name || '';
+
+                const phone = document.createElement('div');
+                phone.className = 'client-phone';
+                phone.innerText = client.phone || formatPhone(client.phoneId);
+
+                info.appendChild(name);
+                info.appendChild(phone);
+
+                const actions = document.createElement('div');
+                actions.className = 'client-actions';
+
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'clients-btn clients-btn-small';
+                editBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Editar';
+                editBtn.addEventListener('click', () => startClientEdit(client.phoneId));
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'clients-btn clients-btn-small clients-btn-danger';
+                delBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Excluir';
+                delBtn.addEventListener('click', () => deleteClient(client.phoneId));
+
+                actions.appendChild(editBtn);
+                actions.appendChild(delBtn);
+
+                row.appendChild(info);
+                row.appendChild(actions);
+                listEl.appendChild(row);
+            }
+        }
+
+        function initClients() {
+            const form = document.getElementById('clientForm');
+            if (!form) return;
+
+            const phoneInput = document.getElementById('clientPhone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', (e) => {
+                    const el = e.target;
+                    const phoneId = normalizePhoneId(el.value);
+                    el.value = formatPhone(phoneId);
+                });
+            }
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const nameInput = document.getElementById('clientName');
+                const phoneInput = document.getElementById('clientPhone');
+
+                const name = String(nameInput?.value || '').trim();
+                const phoneId = normalizePhoneId(phoneInput?.value || '');
+
+                if (!name) return alert('Informe o nome do cliente.');
+                if (!phoneId) return alert('Informe o telefone do cliente.');
+                if (!isValidPhoneId(phoneId)) return alert('Telefone inválido. Use DDD + número (10 ou 11 dígitos).');
+
+                const clients = loadClients();
+                const nowIso = new Date().toISOString();
+
+                if (editingClientId) {
+                    const idx = clients.findIndex((c) => c.phoneId === editingClientId);
+                    if (idx >= 0) {
+                        const isChangingPhone = phoneId !== editingClientId;
+                        if (isChangingPhone && clients.some((c) => c.phoneId === phoneId)) {
+                            return alert('Este telefone já está cadastrado.');
+                        }
+
+                        // Se mudar o telefone (ID), remove o registro antigo e cria/atualiza com novo phoneId
+                        if (isChangingPhone) {
+                            clients.splice(idx, 1);
+                            clients.push({
+                                phoneId,
+                                name,
+                                phone: formatPhone(phoneId),
+                                createdAt: nowIso,
+                                updatedAt: nowIso
+                            });
+                        } else {
+                            clients[idx] = { ...clients[idx], name, phoneId, phone: formatPhone(phoneId), updatedAt: nowIso };
+                        }
+
+                        saveClients(clients);
+                        cancelClientEdit();
+                        renderClients();
+                        return;
+                    }
+                }
+
+                if (clients.some((c) => c.phoneId === phoneId)) {
+                    return alert('Este telefone já está cadastrado.');
+                }
+
+                clients.push({
+                    phoneId,
+                    name,
+                    phone: formatPhone(phoneId),
+                    createdAt: nowIso,
+                    updatedAt: nowIso
+                });
+
+                saveClients(clients);
+                resetClientForm();
+                renderClients();
+            });
+
+            renderClients();
+        }
+
+        const ORDERS_STORAGE_KEY = 'pizzacore.orders.v1';
+        const ORDER_STATUSES = ['atendimento', 'preparo', 'entregue'];
+
+        let ordersPieChart = null;
+
+        function getOrderCounts() {
+            const orders = loadOrders();
+            const counts = {
+                atendimento: 0,
+                preparo: 0,
+                entregue: 0
+            };
+            for (const o of orders) {
+                const status = ORDER_STATUSES.includes(o.status) ? o.status : 'atendimento';
+                counts[status] += 1;
+            }
+            return counts;
+        }
+
+        function initOrdersPieChart() {
+            const canvas = document.getElementById('ordersPieChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') return;
+
+            const counts = getOrderCounts();
+            const total = counts.atendimento + counts.preparo + counts.entregue;
+            const emptyEl = document.getElementById('reportEmpty');
+
+            if (emptyEl) emptyEl.style.display = total === 0 ? 'block' : 'none';
+
+            const ctx = canvas.getContext('2d');
+            ordersPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Atendimento', 'Preparo', 'Entregue'],
+                    datasets: [
+                        {
+                            data: [counts.atendimento, counts.preparo, counts.entregue],
+                            backgroundColor: ['#FB4B02', '#0B5ED7', '#0A7D2C'],
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            hoverOffset: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const value = Number(ctx.raw || 0);
+                                    const data = Array.isArray(ctx?.dataset?.data) ? ctx.dataset.data : [];
+                                    const t = data.reduce((sum, n) => sum + Number(n || 0), 0) || 1;
+                                    const pct = Math.round((value / t) * 100);
+                                    return ` ${ctx.label}: ${value} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            updateOrdersPieChart();
+        }
+
+        function updateOrdersPieChart() {
+            const totalEl = document.getElementById('report-total');
+            const emptyEl = document.getElementById('reportEmpty');
+            const canvas = document.getElementById('ordersPieChart');
+            const legendA = document.getElementById('legend-line-atendimento');
+            const legendP = document.getElementById('legend-line-preparo');
+            const legendE = document.getElementById('legend-line-entregue');
+            const counts = getOrderCounts();
+            const total = counts.atendimento + counts.preparo + counts.entregue;
+
+            if (totalEl) totalEl.innerText = `Total: ${total}`;
+            if (emptyEl) emptyEl.style.display = total === 0 ? 'block' : 'none';
+            if (canvas) canvas.style.visibility = total === 0 ? 'hidden' : 'visible';
+
+            const labelPt = (n) => (n === 1 ? 'pedido' : 'pedidos');
+            if (legendA) legendA.innerHTML = `<span class="dot dot-atendimento"></span> Atendimento: ${counts.atendimento} ${labelPt(counts.atendimento)}`;
+            if (legendP) legendP.innerHTML = `<span class="dot dot-preparo"></span> Preparo: ${counts.preparo} ${labelPt(counts.preparo)}`;
+            if (legendE) legendE.innerHTML = `<span class="dot dot-entregue"></span> Entregue: ${counts.entregue} ${labelPt(counts.entregue)}`;
+
+            if (!ordersPieChart) return;
+            ordersPieChart.data.datasets[0].data = [counts.atendimento, counts.preparo, counts.entregue];
+            ordersPieChart.update('none');
+        }
+
+        function loadOrders() {
+            try {
+                const raw = localStorage.getItem(ORDERS_STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                const list = Array.isArray(parsed) ? parsed : [];
+                // Migração: status antigo "pagamento" vira "entregue"
+                return list.map((o) => {
+                    const nextStatus = o?.status === 'pagamento' ? 'entregue' : o?.status;
+                    return { ...o, status: nextStatus };
+                });
+            } catch {
+                return [];
+            }
+        }
+
+        function saveOrders(orders) {
+            localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+        }
+
+        function generateOrderId() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+            return String(Date.now()) + '-' + Math.random().toString(16).slice(2);
+        }
+
+        function getClientDisplayByPhoneId(phoneId) {
+            const clients = loadClients();
+            const c = clients.find((x) => x.phoneId === phoneId);
+            if (!c) return { name: 'Cliente não encontrado', phone: formatPhone(phoneId) };
+            return { name: c.name || 'Sem nome', phone: c.phone || formatPhone(c.phoneId) };
+        }
+
+        function populateOrderClientsSelect() {
+            const select = document.getElementById('orderClient');
+            if (!select) return;
+
+            const clients = loadClients().slice().sort((a, b) => {
+                const an = String(a.name || '').toLowerCase();
+                const bn = String(b.name || '').toLowerCase();
+                return an.localeCompare(bn);
+            });
+
+            const current = select.value;
+            select.innerHTML = '<option value="">Selecione um cliente...</option>';
+
+            for (const c of clients) {
+                const opt = document.createElement('option');
+                opt.value = c.phoneId;
+                opt.textContent = `${c.name} • ${c.phone || formatPhone(c.phoneId)}`;
+                select.appendChild(opt);
+            }
+
+            // mantém seleção se ainda existir
+            if (current && clients.some((c) => c.phoneId === current)) select.value = current;
+        }
+
+        function setDropzoneHandlers() {
+            document.querySelectorAll('.kanban-dropzone').forEach((zone) => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('is-dragover');
+                });
+                zone.addEventListener('dragleave', () => zone.classList.remove('is-dragover'));
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('is-dragover');
+                    const orderId = e.dataTransfer?.getData('text/plain');
+                    const status = zone.id.replace('col-', '');
+                    if (!orderId) return;
+                    moveOrder(orderId, status);
+                });
+            });
+        }
+
+        function moveOrder(orderId, newStatus) {
+            if (!ORDER_STATUSES.includes(newStatus)) return;
+            const orders = loadOrders();
+            const idx = orders.findIndex((o) => o.id === orderId);
+            if (idx < 0) return;
+
+            orders[idx] = { ...orders[idx], status: newStatus, updatedAt: new Date().toISOString() };
+            saveOrders(orders);
+            renderOrders();
+        }
+
+        function deleteOrder(orderId) {
+            const ok = confirm('Excluir este pedido?');
+            if (!ok) return;
+            const orders = loadOrders().filter((o) => o.id !== orderId);
+            saveOrders(orders);
+            renderOrders();
+        }
+
+        function clearOrders() {
+            const ok = confirm('Tem certeza que deseja apagar TODOS os pedidos?');
+            if (!ok) return;
+            localStorage.removeItem(ORDERS_STORAGE_KEY);
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const orders = loadOrders();
+            const byStatus = {
+                atendimento: [],
+                preparo: [],
+                entregue: []
+            };
+
+            for (const o of orders) {
+                const status = ORDER_STATUSES.includes(o.status) ? o.status : 'atendimento';
+                byStatus[status].push(o);
+            }
+
+            // newest first
+            for (const s of ORDER_STATUSES) {
+                byStatus[s].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+            }
+
+            const cols = {
+                atendimento: document.getElementById('col-atendimento'),
+                preparo: document.getElementById('col-preparo'),
+                entregue: document.getElementById('col-entregue')
+            };
+
+            const counts = {
+                atendimento: document.getElementById('count-atendimento'),
+                preparo: document.getElementById('count-preparo'),
+                entregue: document.getElementById('count-entregue')
+            };
+
+            for (const s of ORDER_STATUSES) {
+                if (cols[s]) cols[s].innerHTML = '';
+                if (counts[s]) counts[s].innerText = String(byStatus[s].length);
+            }
+
+            for (const status of ORDER_STATUSES) {
+                const zone = cols[status];
+                if (!zone) continue;
+
+                for (const o of byStatus[status]) {
+                    const card = document.createElement('div');
+                    card.className = 'order-card';
+                    card.draggable = true;
+                    card.addEventListener('dragstart', (e) => {
+                        e.dataTransfer?.setData('text/plain', o.id);
+                        e.dataTransfer?.setDragImage(card, 10, 10);
+                    });
+
+                    const client = getClientDisplayByPhoneId(o.clientPhoneId);
+
+                    const top = document.createElement('div');
+                    top.className = 'order-top';
+
+                    const title = document.createElement('div');
+                    title.className = 'order-title';
+                    title.textContent = o.title || 'Pedido';
+
+                    const del = document.createElement('button');
+                    del.type = 'button';
+                    del.className = 'order-icon-btn';
+                    del.setAttribute('aria-label', 'Excluir pedido');
+                    del.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                    del.addEventListener('click', () => deleteOrder(o.id));
+
+                    top.appendChild(title);
+                    top.appendChild(del);
+
+                    const meta = document.createElement('div');
+                    meta.className = 'order-meta';
+                    meta.textContent = `${client.name} • ${client.phone}`;
+
+                    const footer = document.createElement('div');
+                    footer.className = 'order-footer';
+
+                    const leftBtn = document.createElement('button');
+                    leftBtn.type = 'button';
+                    leftBtn.className = 'order-move-btn';
+                    leftBtn.innerHTML = '<i class="fa-solid fa-arrow-left"></i>';
+                    leftBtn.disabled = status === 'atendimento';
+                    leftBtn.addEventListener('click', () => {
+                        const idx = ORDER_STATUSES.indexOf(status);
+                        if (idx > 0) moveOrder(o.id, ORDER_STATUSES[idx - 1]);
+                    });
+
+                    const rightBtn = document.createElement('button');
+                    rightBtn.type = 'button';
+                    rightBtn.className = 'order-move-btn';
+                    rightBtn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                    rightBtn.disabled = status === 'entregue';
+                    rightBtn.addEventListener('click', () => {
+                        const idx = ORDER_STATUSES.indexOf(status);
+                        if (idx < ORDER_STATUSES.length - 1) moveOrder(o.id, ORDER_STATUSES[idx + 1]);
+                    });
+
+                    const stamp = document.createElement('div');
+                    stamp.className = 'order-stamp';
+                    stamp.textContent = (o.createdAt || '').slice(0, 16).replace('T', ' ');
+
+                    footer.appendChild(leftBtn);
+                    footer.appendChild(stamp);
+                    footer.appendChild(rightBtn);
+
+                    card.appendChild(top);
+                    card.appendChild(meta);
+                    card.appendChild(footer);
+
+                    zone.appendChild(card);
+                }
+            }
+
+            updateOrdersPieChart();
+        }
+
+        function initOrders() {
+            const form = document.getElementById('orderForm');
+            if (!form) return;
+
+            populateOrderClientsSelect();
+            setDropzoneHandlers();
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const clientPhoneId = String(document.getElementById('orderClient')?.value || '').trim();
+                const title = String(document.getElementById('orderTitle')?.value || '').trim();
+
+                if (!clientPhoneId) return alert('Selecione um cliente.');
+                if (!title) return alert('Informe a descrição do pedido.');
+
+                const clients = loadClients();
+                if (!clients.some((c) => c.phoneId === clientPhoneId)) {
+                    return alert('Cliente inválido. Cadastre o cliente primeiro.');
+                }
+
+                const nowIso = new Date().toISOString();
+                const orders = loadOrders();
+                orders.push({
+                    id: generateOrderId(),
+                    clientPhoneId,
+                    title,
+                    status: 'atendimento',
+                    createdAt: nowIso,
+                    updatedAt: nowIso
+                });
+                saveOrders(orders);
+
+                const titleInput = document.getElementById('orderTitle');
+                if (titleInput) titleInput.value = '';
+
+                renderOrders();
+            });
+
+            renderOrders();
+        }
+
+        function initSettings() {
+            applyTheme(getSelectedTheme());
+
+            const timezoneSelect = document.getElementById('timezoneSelect');
+            const themeSelect = document.getElementById('themeSelect');
+
+            if (timezoneSelect) {
+                timezoneSelect.value = getSelectedTimeZone();
+                timezoneSelect.addEventListener('change', (e) => {
+                    applyTimeZone(e.target.value);
+                });
+            }
+
+            if (themeSelect) {
+                themeSelect.value = getSelectedTheme();
+                themeSelect.addEventListener('change', (e) => {
+                    applyTheme(e.target.value);
+                });
+            }
+        }
+        
+        initSettings();
+        initClients();
+        initOrders();
+        initOrdersPieChart();
+        syncSidebarForViewport();
+        window.addEventListener('resize', syncSidebarForViewport);
+
+        // Se abrir em outra aba e mudar pedidos/clientes, reflete aqui
+        window.addEventListener('storage', (e) => {
+            if (e.key === ORDERS_STORAGE_KEY) {
+                renderOrders();
+            }
+            if (e.key === CLIENTS_STORAGE_KEY) {
+                populateOrderClientsSelect();
+                renderClients();
+            }
+        });
+
+        // No mobile, tocar em um item do menu fecha a sidebar
+        document.querySelectorAll('.sidebar-nav a').forEach((a) => {
+            a.addEventListener('click', () => {
+                if (isMobileLayout()) closeSidebar();
+            });
+        });
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function showView(viewId) {
+            const allViews = document.querySelectorAll('.content-view');
+            allViews.forEach(function(view) {
+                view.style.display = 'none';
+            });
+            
+            const targetView = document.getElementById('view-' + viewId);
+            if (viewId === 'agenda') {
+                targetView.style.display = 'flex';
+                renderCalendar();
+            } else if (viewId === 'clientes') {
+                targetView.style.display = 'block';
+                renderClients();
+                populateOrderClientsSelect();
+            } else {
+                targetView.style.display = 'block';
+            }
+
+            if (viewId === 'pedidos') {
+                populateOrderClientsSelect();
+                renderOrders();
+            }
+        }
+
+        let dateFocus = new Date();
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-days');
+            const display = document.getElementById('month-year-display');
+            grid.innerHTML = '';
+            const currentMonthTitle = dateFocus.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+            display.innerText = currentMonthTitle.toUpperCase();
+
+            const firstDayIndex = new Date(dateFocus.getFullYear(), dateFocus.getMonth(), 1).getDay();
+            const totalDaysInMonth = new Date(dateFocus.getFullYear(), dateFocus.getMonth() + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'day empty';
+                grid.appendChild(emptyDiv);
+            }
+            
+            const today = new Date();
+            for (let day = 1; day <= totalDaysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day';
+                dayDiv.innerText = day;
+                
+                const isToday = day === today.getDate() && 
+                                dateFocus.getMonth() === today.getMonth() && 
+                                dateFocus.getFullYear() === today.getFullYear();
+                
+                if (isToday) {
+                    dayDiv.classList.add('today');
+                }
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        function changeMonth(step) {
+            dateFocus.setMonth(dateFocus.getMonth() + step);
+            renderCalendar();
+        }
+
+        async function checkSession() {
+            const user = await checkAuth();
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function logout() {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) {
+                alert('Erro ao sair: ' + error.message);
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+
+        checkSession();
+    </script>
+</body>
+</html>

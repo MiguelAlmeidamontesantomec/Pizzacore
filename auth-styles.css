@@ -1,0 +1,149 @@
+/* --- CONFIGURAÇÕES GERAIS --- */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+
+body { 
+    background-color: #FFEA00; 
+    height: 100vh; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    padding: 20px; 
+}
+
+.login-wrapper { width: 100%; max-width: 400px; }
+.logo-text { font-size: 32px; font-weight: 800; color: #000; letter-spacing: -1px; }
+
+/* Card */
+.card { background: #fff; padding: 40px 35px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 100%; }
+h1 { font-size: 24px; text-align: center; margin-bottom: 30px; color: #000; }
+
+/* --- FORMULÁRIOS E INPUTS (CORREÇÃO DE SOBREPOSIÇÃO) --- */
+.input-group { position: relative; margin-bottom: 20px; }
+
+/* Ícone da ESQUERDA (Cadeado/Envelope) */
+.input-group i:not(.toggle-password) { 
+    position: absolute; 
+    left: 18px; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    color: #888; 
+    z-index: 2;
+}
+
+/* Ícone da DIREITA (Olho) */
+.toggle-password {
+    position: absolute;
+    right: 18px; 
+    left: auto !important; /* Força o ícone para a direita */
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #888;
+    z-index: 10;
+}
+
+.input-group input { 
+    width: 100%; 
+    padding: 18px 50px 18px 50px; /* Espaço para ícones em ambos os lados */
+    border: 2px solid #e0e0e0; 
+    border-radius: 14px; 
+    outline: none; 
+    font-size: 16px;
+    background: #f9f9f9;
+}
+
+.input-group input:focus { border-color: #FF4500; background: #fff; }
+
+/* Posicionamento do Esqueci minha senha */
+.forgot-link-container {
+    text-align: right;
+    margin-top: -12px;
+    margin-bottom: 25px;
+}
+
+.forgot-link-container a {
+    font-size: 13px;
+    font-weight: 600;
+    color: #000;
+    text-decoration: underline;
+}
+
+/* Botão */
+.btn-primary { 
+    width: 100%; padding: 18px; background: #FF4500; color: #fff; 
+    border: none; border-radius: 14px; font-weight: 800; font-size: 18px; 
+    cursor: pointer; transition: 0.3s; 
+}
+.btn-primary:hover { background: #e63e00; transform: translateY(-3px); }
+
+.footer-links { margin-top: 25px; text-align: center; }
+.footer-links a { color: #000; font-weight: 700; text-decoration: none; font-size: 15px; }
+/* --- AJUSTE DA LOGO PARA ELIMINAR ESPAÇOS --- */
+.logo-container { 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin-bottom: 5px; 
+}
+
+.logo-image {
+    width: 100%; 
+    height: auto; 
+    max-height: 100%; 
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+}
+
+/* --- TELA DE TRANSIÇÃO --- */
+.loader-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #FFEA00; /* Mesmo amarelo do fundo */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Fica por cima de tudo */
+}
+
+.loader-content {
+    text-align: center;
+}
+
+.logo-loader {
+    width: 150px; /* Logo um pouco maior na transição */
+    margin-bottom: 20px;
+    animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Animação de pulsação na logo */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Spinner de carregamento moderno */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #FF4500; /* Laranja da marca */
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loader-content p {
+    font-weight: 700;
+    color: #000;
+    font-size: 16px;
+}
