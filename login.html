@@ -11,7 +11,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff4d4d">
+    
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js');
+      }
+    </script>
 </head>
 <body>
     <div id="loader-overlay" class="loader-overlay" style="display: none;">
@@ -102,4 +109,5 @@
             };
         </script>
 </body>
+
 </html>
