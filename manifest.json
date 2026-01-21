@@ -1,0 +1,17 @@
+{
+  "name": "PizzaCore - Pedidos Online",
+  "short_name": "PizzaCore",
+  "description": "Peça a melhor pizza direto do seu celular",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ff4d4d",
+  "icons": [
+    {
+      "src": "https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/image-removebg-preview%20(12).png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
