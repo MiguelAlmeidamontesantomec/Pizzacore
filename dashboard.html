@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PizzaCore | Dashboard</title>
+    <link rel="icon" type="image/png" href="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/icone.png">
+    <link rel="apple-touch-icon" href="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/icone.png">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <div class="clock-widget">
+            <div id="current-time">00:00:00</div>
+            <div id="current-date">Carregando data...</div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <ul>
+                <li>
+                    <a href="#" onclick="showView('relatorio')">
+                        <i class="fa-solid fa-chart-pie"></i> Relatório
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('clientes')">
+                        <i class="fa-solid fa-user"></i> Clientes
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('pedidos')">
+                        <i class="fa-solid fa-book-open"></i> Pedidos
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('receitas')">
+                        <i class="fa-solid fa-utensils"></i> Receitas
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('agenda')">
+                        <i class="fa-solid fa-calendar-days"></i> Agenda
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('estoque')">
+                        <i class="fa-solid fa-boxes-stacked"></i> Estoque
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('funcionarios')">
+                        <i class="fa-solid fa-users"></i> Funcionários
+                    </a>
+                </li>
+                <li>
+                    <a href="#" onclick="showView('configuracoes')">
+                        <i class="fa-solid fa-gear"></i> Configurações
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <button class="btn-logout" onclick="logout()">
+            <i class="fa-solid fa-right-from-bracket"></i> Sair
+        </button>
+    </aside>
+
+    <main class="main-content">
+        <header class="dashboard-header">
+            <button class="sidebar-toggle" type="button" aria-label="Abrir menu" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <img src="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/image-removebg-preview%20(12).png" alt="Logo PizzaCore" class="dashboard-logo">
+        </header>
+
+        <section id="view-relatorio" class="content-view">
+            <h1 class="view-title">Relatório Financeiro</h1>
+
+            <div class="financial-grid">
+                <div class="fin-card fin-income">
+                    <span class="fin-title"><i class="fa-solid fa-arrow-trend-up"></i> Total de Vendas</span>
+                    <span id="fin-total-income" class="fin-value">R$ 0,00</span>
+                    <small style="color: #888; margin-top: 5px;">Soma dos pedidos realizados</small>
+                </div>
+
+                <div class="fin-card fin-expense">
+                    <span class="fin-title"><i class="fa-solid fa-arrow-trend-down"></i> Gastos com Estoque</span>
+                    <span id="fin-total-expenses" class="fin-value">R$ 0,00</span>
+                    <small style="color: #888; margin-top: 5px;">Compras de insumos (Notas)</small>
+                </div>
+
+                <div class="fin-card fin-balance">
+                    <span class="fin-title"><i class="fa-solid fa-wallet"></i> Saldo Líquido</span>
+                    <span id="fin-net-balance" class="fin-value">R$ 0,00</span>
+                    <small style="color: #888; margin-top: 5px;">Lucro bruto da operação</small>
+                </div>
+            </div>
+
+            <div class="report-grid">
+                <div class="report-card">
+                    <div class="report-header">
+                        <h2 class="report-subtitle">Status dos pedidos</h2>
+                        <span class="report-note" id="report-total">Total: 0</span>
+                    </div>
+
+                    <div class="report-chart-wrap">
+                        <canvas id="ordersPieChart" width="320" height="320"></canvas>
+                        <div class="report-empty" id="reportEmpty" style="display: none;">Sem dados.</div>
+                    </div>
+
+                    <div class="report-legend">
+                        <div class="report-legend-item" id="legend-line-atendimento"><span class="dot dot-atendimento"></span> Atendimento</div>
+                        <div class="report-legend-item" id="legend-line-preparo"><span class="dot dot-preparo"></span> Preparo</div>
+                        <div class="report-legend-item" id="legend-line-entregue"><span class="dot dot-entregue"></span> Entregue</div>
+                        <div class="report-legend-item" id="legend-line-cancelado"><span class="dot dot-cancelado"></span> Cancelado</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-clientes" class="content-view" style="display: none;">
+            <h1 class="view-title">Clientes</h1>
+
+            <div class="clients-layout">
+                <div class="clients-card">
+                    <h2 class="clients-subtitle" id="clientFormTitle">Novo cliente</h2>
+                    <form id="clientForm" class="clients-form">
+                        <div class="clients-field">
+                            <label for="clientName" class="clients-label">Nome</label>
+                            <input id="clientName" class="clients-input" type="text" placeholder="Ex: João Silva" required autocomplete="name">
+                        </div>
+
+                        <div class="clients-field">
+                            <label for="clientPhone" class="clients-label">Telefone</label>
+                            <input id="clientPhone" class="clients-input" type="tel" inputmode="tel" placeholder="Ex: (11) 99999-9999" required autocomplete="tel" maxlength="15">
+                        </div>
+
+                        <div class="clients-actions">
+                            <button type="submit" class="clients-btn clients-btn-primary" id="clientSaveBtn">Salvar</button>
+                            <button type="button" class="clients-btn clients-btn-ghost" id="clientCancelBtn" style="display: none;" onclick="cancelClientEdit()">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="clients-card">
+                    <div class="clients-list-header">
+                        <h2 class="clients-subtitle">Lista de clientes</h2>
+                        <span class="clients-count" id="clientCount">0</span>
+                    </div>
+
+                    <div id="clientEmpty" class="clients-empty" style="display: none;">
+                        Nenhum cliente salvo ainda.
+                    </div>
+
+                    <div id="clientList" class="clients-list"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-pedidos" class="content-view" style="display: none;">
+            <h1 class="view-title">Pedidos</h1>
+
+            <div class="orders-create">
+                <div class="orders-card">
+                    <h2 class="orders-subtitle">Novo pedido</h2>
+                    <form id="orderForm" class="orders-form">
+                        <div class="orders-field">
+                            <label for="orderClient" class="orders-label">Cliente</label>
+                            <select id="orderClient" class="orders-select" required>
+                                <option value="">Selecione um cliente...</option>
+                            </select>
+                        </div>
+
+                        <div class="orders-field">
+                            <label for="orderProduct" class="orders-label">Produto / Sabor</label>
+                            <select id="orderProduct" class="orders-select" required>
+                                <option value="">Selecione...</option>
+                            </select>
+                        </div>
+                        <div class="orders-field">
+                            <label class="orders-label">Quantidade</label>
+                            <input id="orderQty" class="orders-input" type="number" value="1" min="1" required>
+                        </div>
+
+                        <div class="orders-actions">
+                            <button type="submit" class="orders-btn orders-btn-primary">Criar pedido</button>
+                            <button type="button" class="orders-btn orders-btn-ghost" onclick="clearOrders()">Limpar tudo</button>
+                        </div>
+
+                        <p class="orders-hint">Dica: você pode arrastar os cards entre colunas no desktop.</p>
+                    </form>
+                </div>
+            </div>
+
+            <div class="kanban">
+                <div class="kanban-col" data-status="atendimento">
+                    <div class="kanban-col-header">
+                        <h2>Atendimento</h2>
+                        <span class="kanban-count" id="count-atendimento">0</span>
+                    </div>
+                    <div class="kanban-dropzone" id="col-atendimento"></div>
+                </div>
+
+                <div class="kanban-col" data-status="preparo">
+                    <div class="kanban-col-header">
+                        <h2>Preparo</h2>
+                        <span class="kanban-count" id="count-preparo">0</span>
+                    </div>
+                    <div class="kanban-dropzone" id="col-preparo"></div>
+                </div>
+
+                <div class="kanban-col" data-status="entregue">
+                    <div class="kanban-col-header">
+                        <h2>Entregue</h2>
+                        <span class="kanban-count" id="count-entregue">0</span>
+                    </div>
+                    <div class="kanban-dropzone" id="col-entregue"></div>
+                </div>
+
+                <div class="kanban-col" data-status="cancelado" style="border-color: #ffcccc; background: #fff5f5;">
+                    <div class="kanban-col-header" style="background: #ffebeb;">
+                        <h2 style="color: #d32f2f;">Cancelado</h2>
+                        <span class="kanban-count" id="count-cancelado" style="background: #ffcdd2; color: #b71c1c;">0</span>
+                    </div>
+                    <div class="kanban-dropzone" id="col-cancelado"></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="view-agenda" class="content-view" style="display: none;">
+            <h1 class="view-title-agenda">Agenda</h1>
+            
+            <div class="calendar-container">
+                <div class="calendar-header">
+                    <button type="button" onclick="changeMonth(-1)">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <h2 id="month-year-display">JANEIRO DE 2026</h2>
+                    <button type="button" onclick="changeMonth(1)">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+                
+                <div class="calendar-weekdays">
+                    <div>Dom</div><div>Seg</div><div>Ter</div><div>Qua</div><div>Qui</div><div>Sex</div><div>Sáb</div>
+                </div>
+                
+                <div id="calendar-days" class="calendar-grid"></div>
+            </div>
+        </section>
+
+        <section id="view-receitas" class="content-view" style="display: none;">
+    <h1 class="view-title">Fichas Técnicas (Receitas)</h1>
+
+    <div class="clients-layout">
+        <div class="clients-card">
+            <h2 class="clients-subtitle">Criar Nova Receita</h2>
+            <p class="settings-hint">Defina os ingredientes consumidos por cada produto.</p>
+            
+            <form id="recipeForm" class="clients-form">
+                <div class="clients-field">
+                    <label class="clients-label">Nome do Produto (Cardápio)</label>
+                    <input id="recipeName" class="clients-input" type="text" placeholder="Ex: Pizza Calabresa G" required>
+                </div>
+
+                <div class="clients-field">
+                    <label class="clients-label">Preço de Venda (R$)</label>
+                    <div style="position: relative;">
+                        <span style="position: absolute; left: 12px; top: 12px; font-weight: bold; color: #666;">R$</span>
+                        <input id="recipePrice" class="clients-input" type="number" placeholder="0.00" min="0" step="0.01" style="padding-left: 40px;" required>
+                    </div>
+                </div>
+
+                <div class="clients-field">
+                    <label class="clients-label">Ingredientes da Composição</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <select id="recipeIngredientSelect" class="clients-input">
+                            <option value="">Carregando estoque...</option>
+                        </select>
+                        <input id="recipeIngredientQty" class="clients-input" type="number" placeholder="Qtd" style="width: 100px;" min="0.001" step="0.001">
+                        <button type="button" class="clients-btn clients-btn-primary" onclick="addIngredientToRecipe()" style="width: auto;">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="tempIngredientList" style="display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; padding: 10px; background: #f9f9f9; border-radius: 8px; border: 1px dashed #ddd;">
+                        <span style="color: #999; font-size: 12px; align-self: center;">Nenhum ingrediente adicionado.</span>
+                    </div>
+                </div>
+
+                <div class="clients-actions">
+                    <button type="submit" class="clients-btn clients-btn-primary">Salvar Receita</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="clients-card">
+            <h2 class="clients-subtitle">Receitas Cadastradas</h2>
+            <div id="savedRecipesList" class="clients-list"></div>
+        </div>
+    </div>
+</section>
+
+            <section id="view-configuracoes" class="content-view" style="display: none;">
+                <h1 class="view-title">Configurações</h1>
+
+                <div class="settings-panel">
+                    <div class="settings-row">
+                        <label for="timezoneSelect" class="settings-label">Fuso horário</label>
+                        <select id="timezoneSelect" class="settings-select">
+                            <option value="America/Noronha">Fernando de Noronha (UTC−02)</option>
+                            <option value="America/Sao_Paulo">Brasília / SP (UTC−03)</option>
+                            <option value="America/Manaus">Manaus (UTC−04)</option>
+                            <option value="America/Rio_Branco">Rio Branco (UTC−05)</option>
+                        </select>
+                    </div>
+
+                    <div class="settings-row">
+                        <label for="themeSelect" class="settings-label">Cor do layout</label>
+                        <select id="themeSelect" class="settings-select">
+                            <option value="black">Preta</option>
+                            <option value="red">Vermelha</option>
+                            <option value="yellow">Amarela</option>
+                            <option value="blue">Azul</option>
+                            <option value="green">Verde</option>
+                            <option value="orange">Laranja</option>
+                        </select>
+                    </div>
+
+                    <p class="settings-hint">As alterações são salvas automaticamente neste navegador.</p>
+                </div>
+            </section>
+
+            <section id="view-estoque" class="content-view" style="display: none;">
+    <h1 class="view-title">Gestão de Estoque</h1>
+
+    <nav class="stock-nav">
+        <button class="stock-nav-btn active" onclick="showStockTab('cadastrados')">Meus Produtos</button>
+        <button class="stock-nav-btn" onclick="showStockTab('estoque')">Estoque Atual</button>
+        <button class="stock-nav-btn" onclick="showStockTab('entrada')">Entrada (Nota)</button>
+        <button class="stock-nav-btn" onclick="showStockTab('novo')">Novo Item</button>
+        <button class="stock-nav-btn" onclick="showStockTab('historico')">Histórico</button>
+    </nav>
+
+    <div id="tab-cadastrados" class="stock-tab-content active">
+        <div class="clients-card">
+            <h2 class="clients-subtitle">Gerenciar Produtos Cadastrados</h2>
+            <p class="settings-hint" style="margin-bottom: 15px;">Aqui você edita nomes ou exclui itens do sistema.</p>
+            <div id="registeredProductList" class="clients-list"></div>
+        </div>
+    </div>
+
+    <div id="tab-estoque" class="stock-tab-content">
+        <div class="clients-card">
+            <h2 class="clients-subtitle">Saldo em Estoque</h2>
+            <div id="currentStockList" class="clients-list"></div>
+        </div>
+    </div>
+
+    <div id="tab-entrada" class="stock-tab-content">
+        <div class="clients-card">
+            <h2 class="clients-subtitle">Registrar Entrada (Nota Fiscal)</h2>
+            <form id="stockEntryForm" class="clients-form">
+                <div class="clients-field">
+                    <label class="clients-label">Produto</label>
+                    <select id="entryProduct" class="clients-input" required>
+                        <option value="">Carregando produtos...</option>
+                    </select>
+                </div>
+                
+                <div class="orders-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="clients-field">
+                        <label class="clients-label">Quantidade</label>
+                        <input id="entryQuantity" class="clients-input" type="number" placeholder="0" required min="0.01" step="0.01">
+                    </div>
+                    <div class="clients-field">
+                        <label class="clients-label">Custo Total (R$)</label>
+                        <input id="entryCost" class="clients-input" type="number" placeholder="0.00" required min="0.01" step="0.01">
+                    </div>
+                </div>
+
+                <div class="clients-field">
+                    <label class="clients-label">Validade</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input id="entryExpiry" class="clients-input" type="date" required>
+                        <div style="display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+                            <input type="checkbox" id="entryExpiryIndefinite" onchange="toggleExpiryInput()">
+                            <label for="entryExpiryIndefinite" style="font-size: 13px; cursor: pointer;">Indeterminado</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="clients-field">
+                    <label class="clients-label">Nota Fiscal / Recibo</label>
+                    <input id="entryInvoice" class="clients-input" type="text" placeholder="Ex: NF 12345" required>
+                </div>
+
+                <div class="clients-actions">
+                    <button type="submit" class="clients-btn clients-btn-primary">Confirmar Entrada</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="tab-novo" class="stock-tab-content">
+        <div class="clients-card">
+            <h2 class="clients-subtitle">Cadastrar Novo Item</h2>
+            <form id="newProductForm" class="clients-form">
+                <div class="clients-field">
+                    <label class="clients-label">Código de Barras (EAN)</label>
+                    <input id="newProductEAN" class="clients-input" type="text" placeholder="Opcional (Leitor de código)">
+                </div>
+
+                <div class="orders-form" style="display: grid; grid-template-columns: 2fr 1fr; gap: 10px;">
+                    <div class="clients-field">
+                        <label class="clients-label">Nome do Produto</label>
+                        <input id="newProductName" class="clients-input" type="text" placeholder="Ex: Farinha de Trigo" required>
+                    </div>
+                    <div class="clients-field">
+                        <label class="clients-label">Unidade</label>
+                        <select id="newProductUnit" class="clients-input" required>
+                            <option value="un">Un. (Unidade)</option>
+                            <option value="kg">kg (Quilos)</option>
+                            <option value="L">L (Litros)</option>
+                            <option value="cx">cx (Caixa)</option>
+                            <option value="pct">pct (Pacote)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="clients-field">
+                    <label class="clients-label">Categoria</label>
+                    <select id="newProductType" class="clients-input" required>
+                        <option value="alimento">Alimento / Ingrediente</option>
+                        <option value="bebida">Bebida</option>
+                        <option value="embalagem">Embalagem</option>
+                        <option value="limpeza">Limpeza</option>
+                        <option value="outros">Outros</option>
+                    </select>
+                </div>
+
+                <div class="clients-actions">
+                    <button type="submit" class="clients-btn clients-btn-primary">Salvar Produto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="tab-historico" class="stock-tab-content">
+        <div class="clients-card">
+            <h2 class="clients-subtitle">Histórico de Entradas</h2>
+            <div style="overflow-x: auto;">
+                <table class="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th>Qtd</th>
+                            <th>Custo (R$)</th>
+                            <th>Validade</th>
+                            <th>Doc/Nota</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockHistoryList"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+
+        <section id="view-funcionarios" class="content-view" style="display: none;">
+    <h1 class="view-title">Equipe e Funcionários</h1>
+
+    <div class="clients-layout">
+        <div class="clients-card">
+            <h2 class="clients-subtitle" id="empFormTitle">Cadastrar Colaborador</h2>
+            <form id="employeeForm" class="clients-form">
+                <div class="clients-field">
+                    <label class="clients-label">Nome Completo</label>
+                    <input id="empName" class="clients-input" type="text" placeholder="Ex: Maria Oliveira" required>
+                </div>
+
+                <div class="orders-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="clients-field">
+                        <label class="clients-label">Cargo / Função</label>
+                        <select id="empRole" class="clients-input" required>
+                            <option value="atendente">Atendente</option>
+                            <option value="pizzaiolo">Pizzaiolo(a)</option>
+                            <option value="entregador">Entregador(a)</option>
+                            <option value="gerente">Gerente</option>
+                            <option value="auxiliar">Auxiliar</option>
+                        </select>
+                    </div>
+                    <div class="clients-field">
+                        <label class="clients-label">Salário / Diária (R$)</label>
+                        <input id="empSalary" class="clients-input" type="number" placeholder="0.00" step="0.01">
+                    </div>
+                </div>
+
+                <div class="clients-field">
+                    <label class="clients-label">Telefone / Chave Pix</label>
+                    <input id="empPhone" class="clients-input" type="text" placeholder="(99) 99999-9999">
+                </div>
+
+                <div class="clients-actions">
+                    <button type="submit" class="clients-btn clients-btn-primary" id="empSaveBtn">Salvar Ficha</button>
+                    <button type="button" class="clients-btn clients-btn-ghost" id="empCancelBtn" style="display: none;" onclick="cancelEmployeeEdit()">Cancelar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="clients-card">
+            <div class="clients-list-header">
+                <h2 class="clients-subtitle">Lista da Equipe</h2>
+                <span class="clients-count" id="empCount">0</span>
+            </div>
+            <div id="employeeList" class="clients-list"></div>
+        </div>
+    </div>
+</section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js"></script>
+    <script src="receita.js"></script>
+
+    <script>
+        const STORAGE_KEYS = {
+            timeZone: 'pizzacore.timeZone',
+            theme: 'pizzacore.theme'
+        };
+
+        function getSelectedTimeZone() {
+            return localStorage.getItem(STORAGE_KEYS.timeZone) || 'America/Sao_Paulo';
+        }
+
+        function applyTimeZone(timeZone) {
+            localStorage.setItem(STORAGE_KEYS.timeZone, timeZone);
+            updateClock();
+        }
+
+        function getSelectedTheme() {
+            return localStorage.getItem(STORAGE_KEYS.theme) || 'black';
+        }
+
+        function applyTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            localStorage.setItem(STORAGE_KEYS.theme, theme);
+        }
+
+        function isMobileLayout() {
+            return window.matchMedia('(max-width: 768px)').matches;
+        }
+
+        function openSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+
+            sidebar.classList.add('is-open');
+            overlay.classList.add('is-visible');
+            document.body.classList.add('sidebar-open');
+        }
+
+        function closeSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+
+            sidebar.classList.remove('is-open');
+            overlay.classList.remove('is-visible');
+            document.body.classList.remove('sidebar-open');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (!sidebar) return;
+
+            if (sidebar.classList.contains('is-open')) closeSidebar();
+            else openSidebar();
+        }
+
+        function syncSidebarForViewport() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            if (!sidebar || !overlay) return;
+
+            if (isMobileLayout()) {
+                sidebar.classList.add('is-mobile');
+                closeSidebar();
+            } else {
+                sidebar.classList.remove('is-mobile');
+                sidebar.classList.remove('is-open');
+                overlay.classList.remove('is-visible');
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const timeZone = getSelectedTimeZone();
+
+            const timeOptions = {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+                timeZone
+            };
+
+            const dateOptions = {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                timeZone
+            };
+
+            try {
+                document.getElementById('current-time').innerText = now.toLocaleTimeString('pt-BR', timeOptions);
+                document.getElementById('current-date').innerText = now.toLocaleDateString('pt-BR', dateOptions);
+            } catch {
+                // Fallback raro (caso o navegador não suporte timeZone)
+                const fallbackTimeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+                document.getElementById('current-time').innerText = now.toLocaleTimeString('pt-BR', fallbackTimeOptions);
+                document.getElementById('current-date').innerText = now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            }
+        }
+
+        const CLIENTS_STORAGE_KEY = 'pizzacore.clients.v1';
+        // Telefone (somente dígitos) vira o ID único do cliente
+        let editingClientId = null; // phoneId
+
+        function normalizePhoneId(phone) {
+            // ID: somente dígitos, limitado a 11 (DDD + 9 dígitos)
+            const digits = String(phone || '').replace(/\D/g, '').slice(0, 11);
+            return digits;
+        }
+
+        function formatPhone(phoneId) {
+            const digits = normalizePhoneId(phoneId);
+            if (digits.length < 10) return digits;
+            const ddd = digits.slice(0, 2);
+            const rest = digits.slice(2);
+            if (rest.length === 9) {
+                return `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
+            }
+            if (rest.length === 8) {
+                return `(${ddd}) ${rest.slice(0, 4)}-${rest.slice(4)}`;
+            }
+            return `(${ddd}) ${rest}`;
+        }
+
+        function loadClients() {
+            // Migra dados antigos (id aleatório) para phoneId como chave
+            try {
+                const raw = localStorage.getItem(CLIENTS_STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                const list = Array.isArray(parsed) ? parsed : [];
+
+                const byPhoneId = new Map();
+                for (const item of list) {
+                    const phoneId = normalizePhoneId(item?.phoneId || item?.phone || '');
+                    const name = String(item?.name || '').trim();
+                    if (!phoneId || !name) continue;
+
+                    const createdAt = item?.createdAt || new Date().toISOString();
+                    const updatedAt = item?.updatedAt || createdAt;
+                    byPhoneId.set(phoneId, {
+                        phoneId,
+                        name,
+                        phone: formatPhone(phoneId),
+                        createdAt,
+                        updatedAt
+                    });
+                }
+
+                return Array.from(byPhoneId.values());
+            } catch {
+                return [];
+            }
+        }
+
+        function saveClients(clients) {
+            localStorage.setItem(CLIENTS_STORAGE_KEY, JSON.stringify(clients));
+        }
+
+        function isValidPhoneId(phoneId) {
+            // Aceita 10 ou 11 dígitos (DDD + 8/9)
+            return phoneId.length === 10 || phoneId.length === 11;
+        }
+
+        function setClientFormMode(mode) {
+            const title = document.getElementById('clientFormTitle');
+            const saveBtn = document.getElementById('clientSaveBtn');
+            const cancelBtn = document.getElementById('clientCancelBtn');
+
+            if (mode === 'edit') {
+                if (title) title.innerText = 'Editar cliente';
+                if (saveBtn) saveBtn.innerText = 'Atualizar';
+                if (cancelBtn) cancelBtn.style.display = 'inline-flex';
+            } else {
+                if (title) title.innerText = 'Novo cliente';
+                if (saveBtn) saveBtn.innerText = 'Salvar';
+                if (cancelBtn) cancelBtn.style.display = 'none';
+            }
+        }
+
+        function resetClientForm() {
+            const nameInput = document.getElementById('clientName');
+            const phoneInput = document.getElementById('clientPhone');
+            if (nameInput) nameInput.value = '';
+            if (phoneInput) phoneInput.value = '';
+        }
+
+        function cancelClientEdit() {
+            editingClientId = null;
+            setClientFormMode('create');
+            resetClientForm();
+        }
+
+        function startClientEdit(clientId) {
+            const clients = loadClients();
+            const client = clients.find((c) => c.phoneId === clientId);
+            if (!client) return;
+
+            editingClientId = clientId;
+            setClientFormMode('edit');
+
+            const nameInput = document.getElementById('clientName');
+            const phoneInput = document.getElementById('clientPhone');
+            if (nameInput) nameInput.value = client.name || '';
+            if (phoneInput) phoneInput.value = client.phone || '';
+
+            if (nameInput) nameInput.focus();
+        }
+
+        function deleteClient(clientId) {
+            const ok = confirm('Excluir este cliente?');
+            if (!ok) return;
+
+            const clients = loadClients().filter((c) => c.phoneId !== clientId);
+            saveClients(clients);
+            if (editingClientId === clientId) cancelClientEdit();
+            renderClients();
+        }
+
+        function renderClients() {
+            const listEl = document.getElementById('clientList');
+            const emptyEl = document.getElementById('clientEmpty');
+            const countEl = document.getElementById('clientCount');
+            if (!listEl) return;
+
+            const clients = loadClients().slice().sort((a, b) => {
+                const an = String(a.name || '').toLowerCase();
+                const bn = String(b.name || '').toLowerCase();
+                return an.localeCompare(bn);
+            });
+
+            listEl.innerHTML = '';
+            if (countEl) countEl.innerText = String(clients.length);
+
+            if (clients.length === 0) {
+                if (emptyEl) emptyEl.style.display = 'block';
+                return;
+            }
+
+            if (emptyEl) emptyEl.style.display = 'none';
+
+            for (const client of clients) {
+                const row = document.createElement('div');
+                row.className = 'client-row';
+
+                const info = document.createElement('div');
+                info.className = 'client-info';
+
+                const name = document.createElement('div');
+                name.className = 'client-name';
+                name.innerText = client.name || '';
+
+                const phone = document.createElement('div');
+                phone.className = 'client-phone';
+                phone.innerText = client.phone || formatPhone(client.phoneId);
+
+                info.appendChild(name);
+                info.appendChild(phone);
+
+                const actions = document.createElement('div');
+                actions.className = 'client-actions';
+
+                const editBtn = document.createElement('button');
+                editBtn.type = 'button';
+                editBtn.className = 'clients-btn clients-btn-small';
+                editBtn.innerHTML = '<i class="fa-solid fa-pen"></i> Editar';
+                editBtn.addEventListener('click', () => startClientEdit(client.phoneId));
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'clients-btn clients-btn-small clients-btn-danger';
+                delBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Excluir';
+                delBtn.addEventListener('click', () => deleteClient(client.phoneId));
+
+                actions.appendChild(editBtn);
+                actions.appendChild(delBtn);
+
+                row.appendChild(info);
+                row.appendChild(actions);
+                listEl.appendChild(row);
+            }
+        }
+
+        function initClients() {
+            const form = document.getElementById('clientForm');
+            if (!form) return;
+
+            const phoneInput = document.getElementById('clientPhone');
+            if (phoneInput) {
+                phoneInput.addEventListener('input', (e) => {
+                    const el = e.target;
+                    const phoneId = normalizePhoneId(el.value);
+                    el.value = formatPhone(phoneId);
+                });
+            }
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const nameInput = document.getElementById('clientName');
+                const phoneInput = document.getElementById('clientPhone');
+
+                const name = String(nameInput?.value || '').trim();
+                const phoneId = normalizePhoneId(phoneInput?.value || '');
+
+                if (!name) return alert('Informe o nome do cliente.');
+                if (!phoneId) return alert('Informe o telefone do cliente.');
+                if (!isValidPhoneId(phoneId)) return alert('Telefone inválido. Use DDD + número (10 ou 11 dígitos).');
+
+                const clients = loadClients();
+                const nowIso = new Date().toISOString();
+
+                if (editingClientId) {
+                    const idx = clients.findIndex((c) => c.phoneId === editingClientId);
+                    if (idx >= 0) {
+                        const isChangingPhone = phoneId !== editingClientId;
+                        if (isChangingPhone && clients.some((c) => c.phoneId === phoneId)) {
+                            return alert('Este telefone já está cadastrado.');
+                        }
+
+                        // Se mudar o telefone (ID), remove o registro antigo e cria/atualiza com novo phoneId
+                        if (isChangingPhone) {
+                            clients.splice(idx, 1);
+                            clients.push({
+                                phoneId,
+                                name,
+                                phone: formatPhone(phoneId),
+                                createdAt: nowIso,
+                                updatedAt: nowIso
+                            });
+                        } else {
+                            clients[idx] = { ...clients[idx], name, phoneId, phone: formatPhone(phoneId), updatedAt: nowIso };
+                        }
+
+                        saveClients(clients);
+                        cancelClientEdit();
+                        renderClients();
+                        return;
+                    }
+                }
+
+                if (clients.some((c) => c.phoneId === phoneId)) {
+                    return alert('Este telefone já está cadastrado.');
+                }
+
+                clients.push({
+                    phoneId,
+                    name,
+                    phone: formatPhone(phoneId),
+                    createdAt: nowIso,
+                    updatedAt: nowIso
+                });
+
+                saveClients(clients);
+                resetClientForm();
+                renderClients();
+            });
+
+            renderClients();
+        }
+
+        const ORDERS_STORAGE_KEY = 'pizzacore.orders.v1';
+        const ORDER_STATUSES = ['atendimento', 'preparo', 'entregue', 'cancelado'];
+
+        let ordersPieChart = null;
+
+        function getOrderCounts() {
+            const orders = loadOrders();
+            const counts = {
+                atendimento: 0,
+                preparo: 0,
+                entregue: 0,
+                cancelado: 0
+            };
+            for (const o of orders) {
+                const status = ORDER_STATUSES.includes(o.status) ? o.status : 'atendimento';
+                counts[status] += 1;
+            }
+            return counts;
+        }
+
+        function initOrdersPieChart() {
+            const canvas = document.getElementById('ordersPieChart');
+            if (!canvas) return;
+            if (typeof Chart === 'undefined') return;
+
+            const counts = getOrderCounts();
+            const total = counts.atendimento + counts.preparo + counts.entregue + counts.cancelado;
+            const emptyEl = document.getElementById('reportEmpty');
+
+            if (emptyEl) emptyEl.style.display = total === 0 ? 'block' : 'none';
+
+            const ctx = canvas.getContext('2d');
+            ordersPieChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Atendimento', 'Preparo', 'Entregue', 'Cancelado'],
+                    datasets: [
+                        {
+                            data: [counts.atendimento, counts.preparo, counts.entregue, counts.cancelado],
+                            backgroundColor: ['#FB4B02', '#0B5ED7', '#0A7D2C', '#D32F2F'],
+                            borderColor: '#ffffff',
+                            borderWidth: 2,
+                            hoverOffset: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const value = Number(ctx.raw || 0);
+                                    const data = Array.isArray(ctx?.dataset?.data) ? ctx.dataset.data : [];
+                                    const t = data.reduce((sum, n) => sum + Number(n || 0), 0) || 1;
+                                    const pct = Math.round((value / t) * 100);
+                                    return ` ${ctx.label}: ${value} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            updateOrdersPieChart();
+        }
+
+        function updateOrdersPieChart() {
+            const totalEl = document.getElementById('report-total');
+            const emptyEl = document.getElementById('reportEmpty');
+            const canvas = document.getElementById('ordersPieChart');
+            const legendA = document.getElementById('legend-line-atendimento');
+            const legendP = document.getElementById('legend-line-preparo');
+            const legendE = document.getElementById('legend-line-entregue');
+            const legendC = document.getElementById('legend-line-cancelado');
+            const counts = getOrderCounts();
+            const total = counts.atendimento + counts.preparo + counts.entregue + counts.cancelado;
+
+            if (totalEl) totalEl.innerText = `Total: ${total}`;
+            if (emptyEl) emptyEl.style.display = total === 0 ? 'block' : 'none';
+            if (canvas) canvas.style.visibility = total === 0 ? 'hidden' : 'visible';
+
+            const labelPt = (n) => (n === 1 ? 'pedido' : 'pedidos');
+            if (legendA) legendA.innerHTML = `<span class="dot dot-atendimento"></span> Atendimento: ${counts.atendimento} ${labelPt(counts.atendimento)}`;
+            if (legendP) legendP.innerHTML = `<span class="dot dot-preparo"></span> Preparo: ${counts.preparo} ${labelPt(counts.preparo)}`;
+            if (legendE) legendE.innerHTML = `<span class="dot dot-entregue"></span> Entregue: ${counts.entregue} ${labelPt(counts.entregue)}`;
+            if (legendC) legendC.innerHTML = `<span class="dot dot-cancelado"></span> Cancelado: ${counts.cancelado} ${labelPt(counts.cancelado)}`;
+
+            if (!ordersPieChart) return;
+            ordersPieChart.data.datasets[0].data = [counts.atendimento, counts.preparo, counts.entregue, counts.cancelado];
+            ordersPieChart.update('none');
+        }
+
+        /* --- MÓDULO FINANCEIRO --- */
+        function updateFinancialReport() {
+            // 1. Calcular Vendas (Entradas) - considera apenas pedidos NÃO cancelados
+            const orders = loadOrders();
+            let totalIncome = 0;
+            orders.forEach(order => {
+                if (order.status !== 'cancelado') {
+                    totalIncome += Number(order.orderValue) || 0;
+                }
+            });
+
+            // 2. Calcular Gastos (Saídas de Estoque)
+            // Lê o histórico de estoque
+            const history = JSON.parse(localStorage.getItem('pizzacore.stock.history.v1')) || [];
+            let totalExpenses = 0;
+            history.forEach(entry => {
+                // Soma apenas o campo 'cost' (Custo).
+                // Nota: As baixas automáticas de receita têm cost: 0, então não afetam o gasto, o que está correto.
+                // O gasto real acontece na COMPRA (Entrada de Nota).
+                totalExpenses += Number(entry.cost) || 0;
+            });
+
+            // 3. Calcular Saldo
+            const netBalance = totalIncome - totalExpenses;
+
+            // 4. Atualizar na Tela
+            const elIncome = document.getElementById('fin-total-income');
+            const elExpenses = document.getElementById('fin-total-expenses');
+            const elBalance = document.getElementById('fin-net-balance');
+
+            if (elIncome) elIncome.innerText = `R$ ${totalIncome.toFixed(2)}`;
+            if (elExpenses) elExpenses.innerText = `R$ ${totalExpenses.toFixed(2)}`;
+
+            if (elBalance) {
+                elBalance.innerText = `R$ ${netBalance.toFixed(2)}`;
+                // Muda a cor do saldo: Verde se positivo, Vermelho se negativo
+                if (netBalance >= 0) elBalance.style.color = '#0A7D2C';
+                else elBalance.style.color = '#D32F2F';
+            }
+        }
+
+        function loadOrders() {
+            try {
+                const raw = localStorage.getItem(ORDERS_STORAGE_KEY);
+                const parsed = raw ? JSON.parse(raw) : [];
+                const list = Array.isArray(parsed) ? parsed : [];
+                // Migração: status antigo "pagamento" vira "entregue"
+                return list.map((o) => {
+                    const nextStatus = o?.status === 'pagamento' ? 'entregue' : o?.status;
+                    return { ...o, status: nextStatus };
+                });
+            } catch {
+                return [];
+            }
+        }
+
+        function saveOrders(orders) {
+            localStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(orders));
+        }
+
+        function generateOrderId() {
+            if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+            return String(Date.now()) + '-' + Math.random().toString(16).slice(2);
+        }
+
+        function getClientDisplayByPhoneId(phoneId) {
+            const clients = loadClients();
+            const c = clients.find((x) => x.phoneId === phoneId);
+            if (!c) return { name: 'Cliente não encontrado', phone: formatPhone(phoneId) };
+            return { name: c.name || 'Sem nome', phone: c.phone || formatPhone(c.phoneId) };
+        }
+
+        function populateOrderClientsSelect() {
+            const select = document.getElementById('orderClient');
+            if (!select) return;
+
+            const clients = loadClients().slice().sort((a, b) => {
+                const an = String(a.name || '').toLowerCase();
+                const bn = String(b.name || '').toLowerCase();
+                return an.localeCompare(bn);
+            });
+
+            const current = select.value;
+            select.innerHTML = '<option value="">Selecione um cliente...</option>';
+
+            for (const c of clients) {
+                const opt = document.createElement('option');
+                opt.value = c.phoneId;
+                opt.textContent = `${c.name} • ${c.phone || formatPhone(c.phoneId)}`;
+                select.appendChild(opt);
+            }
+
+            // mantém seleção se ainda existir
+            if (current && clients.some((c) => c.phoneId === current)) select.value = current;
+        }
+
+        function setDropzoneHandlers() {
+            document.querySelectorAll('.kanban-dropzone').forEach((zone) => {
+                zone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    zone.classList.add('is-dragover');
+                });
+                zone.addEventListener('dragleave', () => zone.classList.remove('is-dragover'));
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('is-dragover');
+                    const orderId = e.dataTransfer?.getData('text/plain');
+                    const status = zone.id.replace('col-', '');
+                    if (!orderId) return;
+                    moveOrder(orderId, status);
+                });
+            });
+        }
+
+        function moveOrder(orderId, newStatus) {
+            if (!ORDER_STATUSES.includes(newStatus)) return;
+            
+            const orders = loadOrders();
+            const idx = orders.findIndex((o) => o.id === orderId);
+            if (idx < 0) return;
+
+            const order = orders[idx];
+            const oldStatus = order.status;
+
+            // Se nada mudou, sai
+            if (oldStatus === newStatus) return;
+
+            // LÓGICA DE ESTOQUE
+            // 1. Se está CANCELANDO (e não estava cancelado antes) -> Devolve estoque
+            if (newStatus === 'cancelado' && oldStatus !== 'cancelado') {
+                if (order.recipeId && order.quantity) {
+                    const devolvido = returnOrderStock(order.recipeId, order.quantity);
+                    if (devolvido) alert('Pedido cancelado. Itens devolvidos ao estoque.');
+                } else {
+                    alert('Aviso: Pedido antigo sem dados de receita. Estoque não alterado.');
+                }
+            }
+            
+            // 2. Se está DESCANCELANDO (tirando de cancelado para outro) -> Baixa estoque de novo
+            if (oldStatus === 'cancelado' && newStatus !== 'cancelado') {
+                if (order.recipeId && order.quantity) {
+                    processOrderStockDeduction(order.recipeId, order.quantity);
+                    alert('Pedido reativado. Estoque baixado novamente.');
+                }
+            }
+
+            // Atualiza status
+            orders[idx] = { ...order, status: newStatus, updatedAt: new Date().toISOString() };
+            saveOrders(orders);
+            renderOrders();
+            
+            // Atualiza financeiro se a view estiver ativa
+            if (typeof updateFinancialReport === 'function') updateFinancialReport();
+        }
+
+        function deleteOrder(orderId) {
+            const ok = confirm('Excluir este pedido?');
+            if (!ok) return;
+            const orders = loadOrders().filter((o) => o.id !== orderId);
+            saveOrders(orders);
+            renderOrders();
+        }
+
+        function clearOrders() {
+            const ok = confirm('Tem certeza que deseja apagar TODOS os pedidos?');
+            if (!ok) return;
+            localStorage.removeItem(ORDERS_STORAGE_KEY);
+            renderOrders();
+        }
+
+        function renderOrders() {
+            const orders = loadOrders();
+            const byStatus = { atendimento: [], preparo: [], entregue: [], cancelado: [] };
+
+            for (const o of orders) {
+                const status = ORDER_STATUSES.includes(o.status) ? o.status : 'atendimento';
+                byStatus[status].push(o);
+            }
+
+            // Ordenar (mais novo primeiro)
+            for (const s of ORDER_STATUSES) {
+                byStatus[s].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+            }
+
+            // Atualizar contadores e limpar colunas
+            ORDER_STATUSES.forEach(s => {
+                const zone = document.getElementById(`col-${s}`);
+                const count = document.getElementById(`count-${s}`);
+                if (zone) zone.innerHTML = '';
+                if (count) count.innerText = byStatus[s].length;
+            });
+
+            // Renderizar Cards
+            for (const status of ORDER_STATUSES) {
+                const zone = document.getElementById(`col-${status}`);
+                if (!zone) continue;
+
+                for (const o of byStatus[status]) {
+                    const card = document.createElement('div');
+                    card.className = 'order-card';
+                    card.draggable = true;
+                    // Visual para cancelado
+                    if (status === 'cancelado') card.style.opacity = '0.6';
+
+                    card.addEventListener('dragstart', (e) => {
+                        e.dataTransfer?.setData('text/plain', o.id);
+                    });
+
+                    const client = getClientDisplayByPhoneId(o.clientPhoneId);
+
+                    const top = document.createElement('div');
+                    top.className = 'order-top';
+                    top.innerHTML = `<div class="order-title">${o.title || 'Pedido'}</div>`;
+                    
+                    // Botão de Excluir Definitivo
+                    const delBtn = document.createElement('button');
+                    delBtn.className = 'order-icon-btn';
+                    delBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                    delBtn.title = 'Excluir permanentemente';
+                    delBtn.onclick = () => deleteOrder(o.id);
+                    top.appendChild(delBtn);
+
+                    const meta = document.createElement('div');
+                    meta.className = 'order-meta';
+                    meta.textContent = `${client.name} • ${client.phone}`;
+
+                    const stamp = document.createElement('div');
+                    stamp.className = 'order-stamp';
+                    stamp.textContent = (o.createdAt || '').slice(0, 16).replace('T', ' ');
+
+                    const footer = document.createElement('div');
+                    footer.className = 'order-footer';
+
+                    // Botão Mover Esquerda
+                    const leftBtn = document.createElement('button');
+                    leftBtn.className = 'order-move-btn';
+                    leftBtn.innerHTML = '<i class="fa-solid fa-arrow-left"></i>';
+                    leftBtn.disabled = status === 'atendimento';
+                    leftBtn.onclick = () => {
+                        const idx = ORDER_STATUSES.indexOf(status);
+                        if (idx > 0) moveOrder(o.id, ORDER_STATUSES[idx - 1]);
+                    };
+
+                    // Botão Mover Direita
+                    const rightBtn = document.createElement('button');
+                    rightBtn.className = 'order-move-btn';
+                    rightBtn.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+                    rightBtn.disabled = status === 'cancelado';
+                    rightBtn.onclick = () => {
+                        const idx = ORDER_STATUSES.indexOf(status);
+                        if (idx < ORDER_STATUSES.length - 1) moveOrder(o.id, ORDER_STATUSES[idx + 1]);
+                    };
+                    
+                    // Botão de Cancelar Rápido (Se não estiver cancelado)
+                    if (status !== 'cancelado') {
+                        const cancelBtn = document.createElement('button');
+                        cancelBtn.className = 'order-move-btn';
+                        cancelBtn.style.color = '#D32F2F';
+                        cancelBtn.style.borderColor = '#D32F2F';
+                        cancelBtn.innerHTML = '<i class="fa-solid fa-ban"></i>';
+                        cancelBtn.title = 'Cancelar Pedido';
+                        cancelBtn.onclick = () => moveOrder(o.id, 'cancelado');
+                        footer.appendChild(leftBtn);
+                        footer.appendChild(cancelBtn);
+                        footer.appendChild(rightBtn);
+                    } else {
+                        // Se já estiver cancelado, mostra apenas botões de mover
+                        footer.appendChild(leftBtn);
+                        footer.appendChild(rightBtn);
+                    }
+
+                    card.appendChild(top);
+                    card.appendChild(meta);
+                    card.appendChild(stamp);
+                    card.appendChild(footer);
+                    zone.appendChild(card);
+                }
+            }
+            
+            updateOrdersPieChart();
+        }
+
+        function initOrders() {
+            const form = document.getElementById('orderForm');
+            if (!form) return;
+
+            populateOrderClientsSelect();
+            setDropzoneHandlers();
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const clientPhoneId = String(document.getElementById('orderClient')?.value || '').trim();
+                const recipeId = document.getElementById('orderProduct')?.value;
+                const qty = Number(document.getElementById('orderQty')?.value || 1);
+
+                if (!clientPhoneId) return alert('Selecione um cliente.');
+                if (!recipeId) return alert('Selecione o produto.');
+
+                // Baixa no estoque (Venda)
+                const result = processOrderStockDeduction(recipeId, qty);
+                
+                if (!result) return alert('Erro: Receita não encontrada.');
+
+                const title = `${qty}x ${result.name}`;
+                const nowIso = new Date().toISOString();
+                const orders = loadOrders();
+                
+                orders.push({
+                    id: generateOrderId(),
+                    clientPhoneId,
+                    title,
+                    recipeId, // salva ID da receita
+                    quantity: qty, // salva quantidade
+                    orderValue: result.totalValue,
+                    status: 'atendimento',
+                    createdAt: nowIso,
+                    updatedAt: nowIso
+                });
+                
+                saveOrders(orders);
+
+                document.getElementById('orderQty').value = 1;
+                renderOrders();
+                alert(`Pedido criado! Valor total: R$ ${result.totalValue.toFixed(2)}`);
+
+                if (typeof updateFinancialReport === 'function') updateFinancialReport();
+            });
+
+            renderOrders();
+        }
+
+        function initSettings() {
+            applyTheme(getSelectedTheme());
+
+            const timezoneSelect = document.getElementById('timezoneSelect');
+            const themeSelect = document.getElementById('themeSelect');
+
+            if (timezoneSelect) {
+                timezoneSelect.value = getSelectedTimeZone();
+                timezoneSelect.addEventListener('change', (e) => {
+                    applyTimeZone(e.target.value);
+                });
+            }
+
+            if (themeSelect) {
+                themeSelect.value = getSelectedTheme();
+                themeSelect.addEventListener('change', (e) => {
+                    applyTheme(e.target.value);
+                });
+            }
+        }
+        
+        initSettings();
+        initClients();
+        initOrders();
+        initOrdersPieChart();
+        syncSidebarForViewport();
+        window.addEventListener('resize', syncSidebarForViewport);
+
+        // Se abrir em outra aba e mudar pedidos/clientes, reflete aqui
+        window.addEventListener('storage', (e) => {
+            if (e.key === ORDERS_STORAGE_KEY) {
+                renderOrders();
+            }
+            if (e.key === CLIENTS_STORAGE_KEY) {
+                populateOrderClientsSelect();
+                renderClients();
+            }
+        });
+
+        // No mobile, tocar em um item do menu fecha a sidebar
+        document.querySelectorAll('.sidebar-nav a').forEach((a) => {
+            a.addEventListener('click', () => {
+                if (isMobileLayout()) closeSidebar();
+            });
+        });
+
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        function showView(viewId) {
+            const allViews = document.querySelectorAll('.content-view');
+            allViews.forEach(function(view) {
+                view.style.display = 'none';
+            });
+            
+            const targetView = document.getElementById('view-' + viewId);
+            if (!targetView) {
+                console.error(`View com ID 'view-${viewId}' não encontrada.`);
+                return;
+            }
+
+            if (viewId === 'relatorio') {
+                targetView.style.display = 'block';
+                updateOrdersPieChart();
+                updateFinancialReport();
+            } else if (viewId === 'agenda') {
+                targetView.style.display = 'flex';
+                renderCalendar();
+            } else if (viewId === 'clientes') {
+                targetView.style.display = 'block';
+                renderClients();
+                populateOrderClientsSelect();
+            } else if (viewId === 'receitas') {
+                targetView.style.display = 'block';
+                initRecipesView(); // receitas.js
+            } else if (viewId === 'pedidos') {
+                targetView.style.display = 'block';
+                populateOrderClientsSelect();
+                populateOrderRecipeSelect(); // receitas.js
+                renderOrders();
+            } else if (viewId === 'funcionarios') {
+                targetView.style.display = 'block';
+                initEmployees();
+            } else {
+                targetView.style.display = 'block';
+            }
+        }
+
+        let dateFocus = new Date();
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-days');
+            const display = document.getElementById('month-year-display');
+            grid.innerHTML = '';
+            const currentMonthTitle = dateFocus.toLocaleString('pt-BR', { month: 'long', year: 'numeric' });
+            display.innerText = currentMonthTitle.toUpperCase();
+
+            const firstDayIndex = new Date(dateFocus.getFullYear(), dateFocus.getMonth(), 1).getDay();
+            const totalDaysInMonth = new Date(dateFocus.getFullYear(), dateFocus.getMonth() + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'day empty';
+                grid.appendChild(emptyDiv);
+            }
+            
+            const today = new Date();
+            for (let day = 1; day <= totalDaysInMonth; day++) {
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day';
+                dayDiv.innerText = day;
+                
+                const isToday = day === today.getDate() && 
+                                dateFocus.getMonth() === today.getMonth() && 
+                                dateFocus.getFullYear() === today.getFullYear();
+                
+                if (isToday) {
+                    dayDiv.classList.add('today');
+                }
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        function changeMonth(step) {
+            dateFocus.setMonth(dateFocus.getMonth() + step);
+            renderCalendar();
+        }
+
+        /* --- MÓDULO DE ESTOQUE ATUALIZADO (5 ABAS + VALIDADE) --- */
+    
+    const STOCK_PRODUCTS_KEY = 'pizzacore.stock.products.v1';
+    const STOCK_HISTORY_KEY = 'pizzacore.stock.history.v1';
+    let editingProductId = null;
+    let editingEntryId = null; // controle de edição de nota de entrada
+
+    // 1. Alternar entre Abas
+    window.showStockTab = function(tabName) {
+        document.querySelectorAll('.stock-tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.stock-nav-btn').forEach(btn => btn.classList.remove('active'));
+
+        const targetContent = document.getElementById('tab-' + tabName);
+        if (targetContent) targetContent.classList.add('active');
+        
+        // Atualiza estilo dos botões
+        const buttons = document.querySelectorAll('.stock-nav-btn');
+        buttons.forEach(b => {
+            // Lógica simples para identificar o botão correto baseado no nome da função onclick
+            if(b.getAttribute('onclick').includes(tabName)) {
+                b.classList.add('active');
+            }
+        });
+
+        // Ações específicas ao abrir cada aba
+        if (tabName === 'cadastrados') renderRegisteredProducts();
+        if (tabName === 'estoque') renderStockLevels();
+        if (tabName === 'entrada') populateStockSelect();
+        if (tabName === 'historico') renderStockHistory();
+        
+        // Limpa edição se sair da aba de cadastro
+        if (tabName !== 'novo') cancelEditProduct(false);
+    };
+
+    // 2. Helpers
+    function getStockProducts() {
+        return JSON.parse(localStorage.getItem(STOCK_PRODUCTS_KEY)) || [];
+    }
+
+    function getStockHistory() {
+        return JSON.parse(localStorage.getItem(STOCK_HISTORY_KEY)) || [];
+    }
+
+    function saveStockProducts(products) {
+        localStorage.setItem(STOCK_PRODUCTS_KEY, JSON.stringify(products));
+    }
+
+    function getProductStockLevel(productName) {
+        const history = getStockHistory();
+        // Soma as quantidades deste produto
+        return history
+            .filter(h => h.productName === productName)
+            .reduce((sum, h) => sum + Number(h.quantity), 0);
+    }
+
+    // 3. ABA CADASTRADOS (Editar / Excluir)
+    function renderRegisteredProducts() {
+        const listEl = document.getElementById('registeredProductList');
+        const products = getStockProducts();
+        listEl.innerHTML = '';
+
+        if (products.length === 0) {
+            listEl.innerHTML = '<div class="clients-empty">Nenhum produto cadastrado.</div>';
+            return;
+        }
+
+        products.sort((a, b) => a.name.localeCompare(b.name));
+
+        products.forEach(p => {
+            const row = document.createElement('div');
+            row.className = 'client-row';
+            
+            let icon = 'box';
+            if(p.type === 'alimento') icon = 'wheat-awn';
+            if(p.type === 'bebida') icon = 'bottle-water';
+            if(p.type === 'embalagem') icon = 'box-open';
+
+            row.innerHTML = `
+                <div class="client-info">
+                    <div class="client-name">
+                        <i class="fa-solid fa-${icon}" style="color: #666; margin-right:8px;"></i>
+                        ${p.name}
+                    </div>
+                    <div class="client-phone">
+                        ${p.ean ? 'EAN: ' + p.ean : 'S/ Cód'} • ${p.unit} • ${p.type.toUpperCase()}
+                    </div>
+                </div>
+                <div class="client-actions">
+                    <button type="button" class="clients-btn clients-btn-small" onclick="startEditProduct('${p.id}')">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button type="button" class="clients-btn clients-btn-small clients-btn-danger" onclick="deleteProduct('${p.id}')">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            listEl.appendChild(row);
+        });
+    }
+
+    // 4. ABA ESTOQUE ATUAL (Visualização de Saldo)
+    function renderStockLevels() {
+        const listEl = document.getElementById('currentStockList');
+        const products = getStockProducts();
+        listEl.innerHTML = '';
+
+        if (products.length === 0) {
+            listEl.innerHTML = '<div class="clients-empty">Nenhum produto cadastrado.</div>';
+            return;
+        }
+
+        products.sort((a, b) => a.name.localeCompare(b.name));
+
+        products.forEach(p => {
+            const currentStock = getProductStockLevel(p.name);
+            const stockColor = currentStock > 0 ? '#0A7D2C' : '#d9534f';
+
+            const row = document.createElement('div');
+            row.className = 'client-row';
+            row.innerHTML = `
+                <div class="client-info">
+                    <div class="client-name">
+                        ${p.name}
+                    </div>
+                    <div class="client-phone">
+                        Unidade: ${p.unit}
+                    </div>
+                </div>
+                <div class="client-actions" style="font-size: 16px; font-weight: 800; color: ${stockColor};">
+                    ${currentStock} ${p.unit}
+                </div>
+            `;
+            listEl.appendChild(row);
+        });
+    }
+
+    // 5. ABA NOVO / EDITAR
+    const formNewProduct = document.getElementById('newProductForm');
+    if (formNewProduct) {
+        formNewProduct.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('newProductName').value.trim();
+            const type = document.getElementById('newProductType').value;
+            const unit = document.getElementById('newProductUnit').value;
+            const ean = document.getElementById('newProductEAN').value.trim();
+
+            if (!name) return alert('O nome é obrigatório.');
+
+            let products = getStockProducts();
+
+            if (editingProductId) {
+                // Editar
+                const index = products.findIndex(p => p.id === editingProductId);
+                if (index > -1) {
+                    const oldName = products[index].name;
+                    if (oldName !== name) updateHistoryProductName(oldName, name);
+
+                    products[index] = { ...products[index], name, type, unit, ean, updatedAt: new Date().toISOString() };
+                    saveStockProducts(products);
+                    alert('Atualizado com sucesso!');
+                    cancelEditProduct();
+                }
+            } else {
+                // Criar
+                if (products.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                    return alert('Já existe um produto com este nome.');
+                }
+                products.push({ id: Date.now().toString(), name, type, unit, ean, createdAt: new Date().toISOString() });
+                saveStockProducts(products);
+                alert('Cadastrado com sucesso!');
+                formNewProduct.reset();
+                showStockTab('cadastrados'); // Vai para a lista de gestão
+            }
+        });
+    }
+
+    window.deleteProduct = function(id) {
+        if(!confirm('Tem certeza? O produto sumirá da lista, mas o histórico de notas fiscais permanece.')) return;
+        let products = getStockProducts();
+        products = products.filter(p => p.id !== id);
+        saveStockProducts(products);
+        renderRegisteredProducts();
+    };
+
+    window.startEditProduct = function(id) {
+        const products = getStockProducts();
+        const product = products.find(p => p.id === id);
+        if (!product) return;
+
+        editingProductId = id;
+        document.getElementById('newProductName').value = product.name;
+        document.getElementById('newProductType').value = product.type;
+        document.getElementById('newProductUnit').value = product.unit || 'un';
+        document.getElementById('newProductEAN').value = product.ean || '';
+
+        const btn = document.querySelector('#newProductForm button[type="submit"]');
+        if(btn) btn.innerText = 'Atualizar Produto';
+        
+        // Botão cancelar
+        let cancelBtn = document.getElementById('btnCancelEditStock');
+        if (!cancelBtn) {
+            cancelBtn = document.createElement('button');
+            cancelBtn.id = 'btnCancelEditStock';
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'clients-btn clients-btn-ghost';
+            cancelBtn.innerText = 'Cancelar';
+            cancelBtn.style.marginLeft = '10px';
+            cancelBtn.onclick = () => cancelEditProduct();
+            document.querySelector('#newProductForm .clients-actions').appendChild(cancelBtn);
+        }
+
+        showStockTab('novo');
+        document.querySelector('#tab-novo h2').innerText = 'Editar Produto';
+    };
+
+    window.cancelEditProduct = function(changeTab = true) {
+        editingProductId = null;
+        const form = document.getElementById('newProductForm');
+        if(form) form.reset();
+        
+        const btn = document.querySelector('#newProductForm button[type="submit"]');
+        if(btn) btn.innerText = 'Salvar Produto';
+        
+        const cancelBtn = document.getElementById('btnCancelEditStock');
+        if(cancelBtn) cancelBtn.remove();
+        document.querySelector('#tab-novo h2').innerText = 'Cadastrar Novo Item';
+
+        if(changeTab) showStockTab('cadastrados');
+    };
+
+    function updateHistoryProductName(oldName, newName) {
+        let history = getStockHistory();
+        let changed = false;
+        history = history.map(h => {
+            if (h.productName === oldName) {
+                changed = true;
+                return { ...h, productName: newName };
+            }
+            return h;
+        });
+        if (changed) localStorage.setItem(STOCK_HISTORY_KEY, JSON.stringify(history));
+    }
+
+    // 6. ABA ENTRADA (Lógica de Validade)
+    window.toggleExpiryInput = function() {
+        const checkbox = document.getElementById('entryExpiryIndefinite');
+        const dateInput = document.getElementById('entryExpiry');
+        if(checkbox.checked) {
+            dateInput.value = '';
+            dateInput.disabled = true;
+            dateInput.required = false;
+        } else {
+            dateInput.disabled = false;
+            dateInput.required = true;
+        }
+    };
+
+    function populateStockSelect() {
+        const select = document.getElementById('entryProduct');
+        const products = getStockProducts();
+        
+        select.innerHTML = '<option value="">Selecione o produto...</option>';
+        products.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.name; 
+            option.setAttribute('data-unit', p.unit || 'un');
+            option.setAttribute('data-type', p.type); // Guardar tipo pra automação
+            option.textContent = p.name;
+            select.appendChild(option);
+        });
+
+        // Automação: Se for embalagem, marca "Indeterminado" automaticamente
+        select.onchange = function() {
+            const selectedOption = select.options[select.selectedIndex];
+            const unit = selectedOption.getAttribute('data-unit');
+            const type = selectedOption.getAttribute('data-type');
+            
+            // Label da quantidade
+            const labelQty = document.querySelector('label[for="entryQuantity"]');
+            if(labelQty && unit) labelQty.innerText = `Quantidade (${unit})`;
+            
+            // Lógica Validade
+            const checkIndefinite = document.getElementById('entryExpiryIndefinite');
+            if (type === 'embalagem' || type === 'limpeza' || type === 'outros') {
+                checkIndefinite.checked = true;
+            } else {
+                checkIndefinite.checked = false;
+            }
+            toggleExpiryInput(); // Aplica o estado visual (disabled ou não)
+        };
+    }
+
+    const formEntry = document.getElementById('stockEntryForm');
+    if (formEntry) {
+        formEntry.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const select = document.getElementById('entryProduct');
+            const productName = select.value;
+            const unit = select.options[select.selectedIndex]?.getAttribute('data-unit') || 'un';
+            
+            const qty = parseFloat(document.getElementById('entryQuantity').value);
+            const cost = parseFloat(document.getElementById('entryCost').value);
+            const invoice = document.getElementById('entryInvoice').value.trim();
+            
+            // Lógica data
+            const isIndefinite = document.getElementById('entryExpiryIndefinite').checked;
+            let expiry = 'Indeterminado';
+            if (!isIndefinite) {
+                expiry = document.getElementById('entryExpiry').value; // Formato YYYY-MM-DD
+            }
+
+            if (!productName || !qty || isNaN(cost) || !invoice) return alert('Preencha todos os campos obrigatórios.');
+            if (!isIndefinite && !expiry) return alert('Informe a data de validade.');
+
+            const history = getStockHistory();
+
+            if (editingEntryId) {
+                // --- MODO EDIÇÃO ---
+                const index = history.findIndex(h => h.id === editingEntryId);
+                if (index > -1) {
+                    // Mantém a data original de criação, mas atualiza o resto
+                    history[index] = {
+                        ...history[index],
+                        productName, unit, quantity: qty, cost, invoice, expiry
+                    };
+                    localStorage.setItem(STOCK_HISTORY_KEY, JSON.stringify(history));
+                    alert('Entrada atualizada com sucesso!');
+                    cancelEditEntry(); // Sai do modo edição
+                }
+            } else {
+                // --- MODO NOVO ---
+                history.push({
+                    id: Date.now().toString(),
+                    productName, unit, quantity: qty, cost, invoice, expiry,
+                    date: new Date().toISOString()
+                });
+                localStorage.setItem(STOCK_HISTORY_KEY, JSON.stringify(history));
+                alert('Entrada registrada!');
+                formEntry.reset();
+                
+                // Reseta visual da data
+                document.getElementById('entryExpiryIndefinite').checked = false;
+                toggleExpiryInput();
+            }
+
+            // Atualiza tudo
+            if (typeof updateFinancialReport === 'function') updateFinancialReport();
+            showStockTab('historico');
+        });
+    }
+
+    function renderStockHistory() {
+        const tbody = document.getElementById('stockHistoryList');
+        const history = getStockHistory();
+        tbody.innerHTML = '';
+
+        if (history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px;">Nenhuma movimentação registrada.</td></tr>';
+            return;
+        }
+        
+        // Ordena: Mais recente primeiro
+        history.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+        history.forEach(h => {
+            // Formata Data Validade
+            let expiryDisplay = h.expiry;
+            if (h.expiry !== 'Indeterminado' && h.expiry && h.expiry !== 'N/A') {
+                const parts = h.expiry.split('-'); 
+                if (parts.length === 3) expiryDisplay = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+
+            // Define exibição de custo
+            const costDisplay = h.cost ? `R$ ${parseFloat(h.cost).toFixed(2)}` : '-';
+            const costColor = h.cost > 0 ? '#D32F2F' : '#666'; 
+
+            // Botões de Ação (Só mostra editar se NÃO for venda automática)
+            let actionBtns = '';
+            if (h.invoice !== 'VENDA AUTOMÁTICA') {
+                actionBtns = `
+                    <button class="clients-btn clients-btn-small" onclick="startEditEntry('${h.id}')" title="Editar">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="clients-btn clients-btn-small clients-btn-danger" onclick="deleteStockEntry('${h.id}')" title="Excluir">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+            } else {
+                actionBtns = `<small style="color:#999; font-style:italic;">Sistema</small>`;
+            }
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${h.productName}</strong></td>
+                <td>${h.quantity} <small>${h.unit || 'un'}</small></td>
+                <td style="color: ${costColor}; font-weight:bold;">${costDisplay}</td>
+                <td>${expiryDisplay}</td>
+                <td><small>${h.invoice}</small></td>
+                <td>${new Date(h.date).toLocaleDateString('pt-BR')}</td>
+                <td><div style="display:flex; gap:5px;">${actionBtns}</div></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    window.deleteStockEntry = function(id) {
+        if (!confirm('Tem certeza que deseja apagar este registro de entrada? Isso afetará o saldo financeiro.')) return;
+        
+        let history = getStockHistory();
+        history = history.filter(h => h.id !== id);
+        localStorage.setItem(STOCK_HISTORY_KEY, JSON.stringify(history));
+        
+        renderStockHistory();
+        if (typeof updateFinancialReport === 'function') updateFinancialReport();
+    };
+
+    window.startEditEntry = function(id) {
+        const history = getStockHistory();
+        const entry = history.find(h => h.id === id);
+        if (!entry) return;
+
+        editingEntryId = id;
+
+        // Vai para a aba de formulário
+        showStockTab('entrada');
+
+        // Preenche os campos
+        const select = document.getElementById('entryProduct');
+        select.value = entry.productName;
+        // Dispara evento manual para atualizar a unidade visualmente
+        select.dispatchEvent(new Event('change'));
+
+        document.getElementById('entryQuantity').value = entry.quantity;
+        document.getElementById('entryCost').value = entry.cost;
+        document.getElementById('entryInvoice').value = entry.invoice;
+
+        // Lógica Validade no Edit
+        const checkIndefinite = document.getElementById('entryExpiryIndefinite');
+        const dateInput = document.getElementById('entryExpiry');
+        
+        if (entry.expiry === 'Indeterminado') {
+            checkIndefinite.checked = true;
+            dateInput.value = '';
+        } else {
+            checkIndefinite.checked = false;
+            dateInput.value = entry.expiry;
+        }
+        toggleExpiryInput();
+
+        // Muda o texto do botão
+        const btn = document.querySelector('#stockEntryForm button[type="submit"]');
+        if (btn) {
+            btn.innerText = 'Atualizar Entrada';
+            btn.classList.add('clients-btn-warning'); // opcional, se existir estilo
+        }
+
+        // Adiciona botão cancelar
+        let cancelBtn = document.getElementById('btnCancelEditEntry');
+        if (!cancelBtn) {
+            cancelBtn = document.createElement('button');
+            cancelBtn.id = 'btnCancelEditEntry';
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'clients-btn clients-btn-ghost';
+            cancelBtn.innerText = 'Cancelar Edição';
+            cancelBtn.style.marginLeft = '10px';
+            cancelBtn.onclick = () => cancelEditEntry();
+            const actions = document.querySelector('#stockEntryForm .clients-actions');
+            if (actions) actions.appendChild(cancelBtn);
+        }
+        
+        // Atualiza título do card
+        const titleEl = document.querySelector('#tab-entrada h2');
+        if (titleEl) titleEl.innerText = 'Editando Nota Fiscal';
+    };
+
+    window.cancelEditEntry = function() {
+        editingEntryId = null;
+        const form = document.getElementById('stockEntryForm');
+        if (form) form.reset();
+        
+        const btn = document.querySelector('#stockEntryForm button[type="submit"]');
+        if (btn) {
+            btn.innerText = 'Confirmar Entrada';
+            btn.classList.remove('clients-btn-warning');
+        }
+
+        const cancelBtn = document.getElementById('btnCancelEditEntry');
+        if (cancelBtn) cancelBtn.remove();
+
+        const titleEl = document.querySelector('#tab-entrada h2');
+        if (titleEl) titleEl.innerText = 'Registrar Entrada (Nota Fiscal)';
+        
+        // Reseta validade visual
+        document.getElementById('entryExpiryIndefinite').checked = false;
+        toggleExpiryInput();
+        
+        showStockTab('historico');
+    };
+
+        /* --- MÓDULO DE FUNCIONÁRIOS --- */
+    
+    const EMPLOYEES_KEY = 'pizzacore.employees.v1';
+    let editingEmpId = null;
+
+    // 1. Carregar Dados
+    function getEmployees() {
+        return JSON.parse(localStorage.getItem(EMPLOYEES_KEY)) || [];
+    }
+
+    function saveEmployees(data) {
+        localStorage.setItem(EMPLOYEES_KEY, JSON.stringify(data));
+    }
+
+    // 2. Renderizar Lista
+    function renderEmployees() {
+        const list = document.getElementById('employeeList');
+        const countEl = document.getElementById('empCount');
+        const employees = getEmployees();
+        
+        if(!list) return;
+        list.innerHTML = '';
+        if(countEl) countEl.innerText = employees.length;
+
+        if (employees.length === 0) {
+            list.innerHTML = '<div class="clients-empty">Nenhum funcionário cadastrado.</div>';
+            return;
+        }
+
+        // Ordenar por nome
+        employees.sort((a, b) => a.name.localeCompare(b.name));
+
+        employees.forEach(emp => {
+            const row = document.createElement('div');
+            row.className = 'client-row';
+            
+            // Ícone baseado no cargo
+            let icon = 'user';
+            let roleLabel = emp.role;
+            if(emp.role === 'entregador') { icon = 'motorcycle'; roleLabel = 'Entregador'; }
+            if(emp.role === 'pizzaiolo') { icon = 'fire-burner'; roleLabel = 'Pizzaiolo'; }
+            if(emp.role === 'atendente') { icon = 'headset'; roleLabel = 'Atendente'; }
+            if(emp.role === 'gerente') { icon = 'user-tie'; roleLabel = 'Gerente'; }
+
+            const salaryDisplay = emp.salary ? `R$ ${parseFloat(emp.salary).toFixed(2)}` : '-';
+
+            row.innerHTML = `
+                <div class="client-info">
+                    <div class="client-name">
+                        <i class="fa-solid fa-${icon}" style="color: #666; margin-right:8px; width:20px; text-align:center;"></i>
+                        ${emp.name}
+                    </div>
+                    <div class="client-phone" style="display:flex; justify-content:space-between; width:100%; padding-right:10px;">
+                        <span>${roleLabel.toUpperCase()}</span>
+                        <span style="color:#0A7D2C; font-weight:bold;">${salaryDisplay}</span>
+                    </div>
+                    <div style="font-size:11px; color:#888; margin-left:32px;">${emp.phone || ''}</div>
+                </div>
+                <div class="client-actions">
+                    <button type="button" class="clients-btn clients-btn-small" onclick="startEmployeeEdit('${emp.id}')">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button type="button" class="clients-btn clients-btn-small clients-btn-danger" onclick="deleteEmployee('${emp.id}')">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            list.appendChild(row);
+        });
+    }
+
+    // 3. Inicializar Formulário
+    function initEmployees() {
+        const form = document.getElementById('employeeForm');
+        if(!form) return;
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const name = document.getElementById('empName').value.trim();
+            const role = document.getElementById('empRole').value;
+            const salary = document.getElementById('empSalary').value;
+            const phone = document.getElementById('empPhone').value;
+
+            if(!name) return alert('Nome é obrigatório.');
+
+            let employees = getEmployees();
+
+            if(editingEmpId) {
+                // Editar
+                const index = employees.findIndex(e => e.id === editingEmpId);
+                if(index > -1) {
+                    employees[index] = { ...employees[index], name, role, salary, phone, updatedAt: new Date().toISOString() };
+                    saveEmployees(employees);
+                    alert('Funcionário atualizado!');
+                    cancelEmployeeEdit();
+                }
+            } else {
+                // Criar
+                const newEmp = {
+                    id: Date.now().toString(),
+                    name, role, salary, phone,
+                    createdAt: new Date().toISOString()
+                };
+                employees.push(newEmp);
+                saveEmployees(employees);
+                alert('Funcionário cadastrado!');
+                form.reset();
+                renderEmployees();
+            }
+        });
+        
+        renderEmployees();
+    }
+
+    // 4. Ações (Editar / Excluir / Cancelar)
+    window.deleteEmployee = function(id) {
+        if(!confirm('Remover este funcionário da equipe?')) return;
+        const list = getEmployees().filter(e => e.id !== id);
+        saveEmployees(list);
+        if(editingEmpId === id) cancelEmployeeEdit();
+        renderEmployees();
+    };
+
+    window.startEmployeeEdit = function(id) {
+        const emp = getEmployees().find(e => e.id === id);
+        if(!emp) return;
+
+        editingEmpId = id;
+        document.getElementById('empName').value = emp.name;
+        document.getElementById('empRole').value = emp.role;
+        document.getElementById('empSalary').value = emp.salary || '';
+        document.getElementById('empPhone').value = emp.phone || '';
+
+        document.getElementById('empFormTitle').innerText = 'Editar Colaborador';
+        document.getElementById('empSaveBtn').innerText = 'Atualizar Dados';
+        document.getElementById('empCancelBtn').style.display = 'inline-flex';
+    };
+
+    window.cancelEmployeeEdit = function() {
+        editingEmpId = null;
+        document.getElementById('employeeForm').reset();
+        document.getElementById('empFormTitle').innerText = 'Cadastrar Colaborador';
+        document.getElementById('empSaveBtn').innerText = 'Salvar Ficha';
+        document.getElementById('empCancelBtn').style.display = 'none';
+    };
+
+        async function checkSession() {
+            const user = await checkAuth();
+            if (!user) {
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function logout() {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) {
+                alert('Erro ao sair: ' + error.message);
+            } else {
+                window.location.href = 'login.html';
+            }
+        }
+
+        checkSession();
+    </script>
+</body>
+</html>

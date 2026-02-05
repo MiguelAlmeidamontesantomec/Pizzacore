@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PizzaCore | Login</title>
+    <link rel="icon" type="image/png" href="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/icone.png">
+    <link rel="apple-touch-icon" href="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/icone.png">
+    <link rel="stylesheet" href="auth-styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+</head>
+<body>
+    <div id="loader-overlay" class="loader-overlay" style="display: none;">
+        <div class="loader-content">
+            <img src="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/image-removebg-preview%20(12).png" alt="Logo" class="logo-loader">
+            <div class="spinner"></div>
+            <p>Preparando sua pizza...</p>
+        </div>
+    </div>
+    <div class="login-wrapper">
+        <div class="logo-container">
+            <img src="https://lwdgamxwwgurknaoqset.supabase.co/storage/v1/object/public/imagens/image-removebg-preview%20(12).png" alt="Ícone Pizza" class="logo-image">
+        </div>
+
+        <div class="card">
+            <h1>Bem-vindo de volta!</h1>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <i class="fa-regular fa-envelope"></i>
+                    <input type="email" id="email" placeholder="Seu e-mail" required>
+                </div>
+
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="password" placeholder="Sua senha" required>
+                    <i class="fa-regular fa-eye-slash toggle-password" onclick="toggleVisibility('password', this)"></i>
+                </div>
+
+                <div class="forgot-link-container">
+                    <a href="forgot-password.html">Esqueci minha senha</a>
+                </div>
+
+                <button type="submit" class="btn-primary" id="btnSubmit">ENTRAR NA CONTA</button>
+            </form>
+
+            <div class="footer-links">
+               <p>Não tem uma conta? <a href="signup.html"><br>crie uma agora</a></p> 
+            </div>
+        </div>
+
+        <script>
+            // --- CONFIGURAÇÃO DO SUPABASE ---
+            const SUPABASE_URL = 'https://lwdgamxwwgurknaoqset.supabase.co';
+            const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3ZGdhbXh3d2d1cmtuYW9xc2V0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg3MDE2NTEsImV4cCI6MjA4NDI3NzY1MX0.th70GFLc6MRNI-oBvphoi2dkOCqqfCY1ER4LHSFsjsY'; 
+            const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+            function toggleVisibility(inputId, icon) {
+                const input = document.getElementById(inputId);
+                if (input.type === "password") {
+                    input.type = "text";
+                    icon.classList.replace("fa-eye-slash", "fa-eye");
+                } else {
+                    input.type = "password";
+                    icon.classList.replace("fa-eye", "fa-eye-slash");
+                }
+            }
+
+            document.getElementById('loginForm').onsubmit = async (e) => {
+                e.preventDefault();
+                
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                const btn = document.getElementById('btnSubmit');
+                const overlay = document.getElementById('loader-overlay');
+
+                btn.disabled = true;
+                btn.innerText = 'AUTENTICANDO...';
+
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+                if (error) {
+                    alert('Falha ao entrar: ' + error.message);
+                    btn.disabled = false;
+                    btn.innerText = 'ENTRAR NA CONTA';
+                } else {
+                    // ATIVA A TELA DE TRANSIÇÃO
+                    overlay.style.display = 'flex';
+
+                    // Aguarda 2 segundos para o usuário ver a logo e o carregamento
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                }
+            };
+        </script>
+</body>
+</html>
